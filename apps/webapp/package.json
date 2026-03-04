@@ -1,6 +1,6 @@
 {
   "name": "@bookbat/webapp",
-  "version": "0.8.3",
+  "version": "0.8.1",
   "private": true,
   "type": "module",
   "scripts": {

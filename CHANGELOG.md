@@ -1,12 +1,12 @@
 # Changelog
 
-## 0.8.3
+## 0.1.1 (Astro / BAOBAB)
 
-- Polished BAOBAB Astro footer copy and structure: clearer two-line BAOBAB description, simplified BOOKBAT description, and improved section grouping
-- Added version tags next to both footer brand names (`BAOBAB` and `BOOK BAT`) and removed redundant standalone version row
-- Added footer divider styling/placement refinements and kept attribution, open-source, and license links consistent
-- Moved BAOBAB-specific `data/library.json` usage guidance into the BAOBAB section for clearer ownership
-- Ran full preflight gates from workspace root with passing results: `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm build`
+- Polished BAOBAB Astro footer copy and structure: clearer BAOBAB/BOOKBAT wording, improved line grouping, and cleaner section flow
+- Added version tags next to both footer brand names and removed the redundant standalone version row
+- Added/positioned gray divider and moved BAOBAB-specific `data/library.json` usage guidance into the BAOBAB section
+- Clarified footer attribution and links (`baobab.junglestar.org`, `junglestar.org`, repo, license)
+- Correction release: reverted accidental `0.8.3` version bump on BOOKBAT webapp/root back to `0.8.1`
 
 ## 0.8.1
 
