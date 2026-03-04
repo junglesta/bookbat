@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.8.0
+
+- Library sort UX upgrade in webapp: added Publisher sort support and refactored sorting into field + global direction toggle (`↑/↓`) instead of verbose per-option A/Z labels
+- Astro client sort parity: added Publisher sort support, then moved to field + direction toggle model to match the main app behavior
+- Fixed Library sort dropdown readability: content-based dropdown width + no-wrap options to prevent multi-line split labels
+- Enlarged Book Details cover presentation to full-width hero style at top of detail card, with metadata/actions stacked below
+- Improved large-screen background/frame behavior: frame now activates at the same breakpoint where nav shifts to top, and frame body uses 75% alpha for controlled see-through effect
+- Fixed large-screen layout/flex overflow causing hidden footer and oversized empty vertical space (notably in relaxed Scan view)
+- Consolidated conflicting `@media (min-width: 640px)` frame/nav rules into a single source of truth and removed obsolete/dead rules
+- Fixed startup splashscreen viewport coverage across aspect ratios by forcing full-screen cover behavior, preventing lime background bleed at screen edges
+- Footer/readability refinements: black footer card, increased top spacing, and brighter secondary text for improved contrast
+- Typography cleanup: enforced minimum 14px text, raised key meta/help copy to 15px, normalized odd 15.84px values, and removed unused muted-overlay tokens
+- Header controls UX polish: moved title count into `All [N]` tab and removed standalone count pill above search
+- Unified CTA/button language and shape: uppercase button text and consistent corner radius treatment across controls
+- Fixed small browser-default button text fallback (`13.333px`) by setting explicit button typography and separating text-button vs icon-button sizing in library header actions
+- Export help improvements: clarified Google Sheets setup wording (web version, no browser extension needed), added top-right `Copy code` button with `Copied` state for Apps Script snippet
+- Google Sheets push feedback hardening: added inline sending/success/error status messaging in UI (not only toast/confirm dialog)
+- Webhook/export reliability and diagnostics: improved Apps Script URL validation/normalization (accept bare deployment URLs, normalize to `/exec`, reject `/dev`), added targeted network failure guidance for `Failed to fetch`, and reduced preflight/CORS issues by using simple POST payload request
+- Ran full preflight gates from workspace root with passing results: `pnpm format`, `pnpm lint`, `pnpm test`, `pnpm build`
+
 ## 0.7.4
 
 - Moved the Astro export panel out of the book grid into its own standalone section below the list

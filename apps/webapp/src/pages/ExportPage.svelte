@@ -13,6 +13,7 @@
         SHEETS_URL_STORAGE_KEY,
     } from "../lib/storage-keys";
     import {
+        formatWebhookClientError,
         formatWebhookError,
         getWebhookHost,
         validateWebhookUrl,
@@ -45,6 +46,21 @@
     let sheetsConfirmOpen = $state(false);
     let pendingWebhookUrl = $state("");
     let pendingWebhookHost = $state("");
+    let sheetsPushStatus = $state<"idle" | "sending" | "success" | "error">(
+        "idle",
+    );
+    let sheetsPushMessage = $state("");
+    let copiedSheetsCode = $state(false);
+    let copiedSheetsCodeTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const sheetsAppsScriptCode = `function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  sheet.clear();
+  sheet.appendRow(['Title','Author','ISBN','Status','Rating']);
+  data.books.forEach(b => sheet.appendRow([b.title, b.authors.join('; '), b.isbn13, b.status, b.rating || '']));
+  return ContentService.createTextOutput('ok');
+}`;
 
     function toggleHelp(id: string) {
         openHelp = openHelp === id ? null : id;
@@ -163,12 +179,16 @@
     function pushToSheets() {
         const validation = validateWebhookUrl(webhookUrl);
         if (!validation.ok || !validation.normalizedUrl) {
+            sheetsPushStatus = "error";
+            sheetsPushMessage = validation.error || "Webhook URL is not valid";
             showToast(validation.error || "Webhook URL is not valid");
             return;
         }
 
         const collection = getRawCollection();
         if (collection.books.length === 0) {
+            sheetsPushStatus = "error";
+            sheetsPushMessage = "No books to export.";
             showToast("No books to export.");
             return;
         }
@@ -176,6 +196,8 @@
         pendingWebhookUrl = validation.normalizedUrl;
         pendingWebhookHost = getWebhookHost(validation.normalizedUrl);
         webhookUrl = validation.normalizedUrl;
+        sheetsPushStatus = "idle";
+        sheetsPushMessage = "";
         sheetsConfirmOpen = true;
     }
 
@@ -183,26 +205,45 @@
         sheetsConfirmOpen = false;
     }
 
+    async function copySheetsCode() {
+        try {
+            await navigator.clipboard.writeText(sheetsAppsScriptCode);
+            copiedSheetsCode = true;
+            if (copiedSheetsCodeTimer) clearTimeout(copiedSheetsCodeTimer);
+            copiedSheetsCodeTimer = setTimeout(() => {
+                copiedSheetsCode = false;
+            }, 1400);
+        } catch {
+            showToast("Could not copy code");
+        }
+    }
+
     async function confirmPushToSheets() {
         if (!pendingWebhookUrl || exporting) return;
         exporting = true;
+        sheetsPushStatus = "sending";
+        sheetsPushMessage = "Sending books to Google Sheets...";
 
         try {
             localStorage.setItem(SHEETS_URL_STORAGE_KEY, pendingWebhookUrl);
             const collection = getRawCollection();
             const resp = await fetch(pendingWebhookUrl, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(collection),
             });
             if (!resp.ok) {
                 throw new Error(await formatWebhookError(resp));
             }
+            sheetsPushStatus = "success";
+            sheetsPushMessage = `Exported ${collection.books.length} books to Google Sheets.`;
             showToast(
                 `Exported ${collection.books.length} books to Google Sheets!`,
             );
         } catch (e: unknown) {
-            showToast(getErrorMessage(e, "Export failed"));
+            const message = formatWebhookClientError(e);
+            sheetsPushStatus = "error";
+            sheetsPushMessage = message;
+            showToast(message);
         } finally {
             exporting = false;
             sheetsConfirmOpen = false;
@@ -289,6 +330,17 @@
                 >
                     {exporting ? "Exporting..." : "Push"}
                 </button>
+                {#if sheetsPushStatus !== "idle"}
+                    <p
+                        class="sheets_status"
+                        class:sheets_status_sending={sheetsPushStatus === "sending"}
+                        class:sheets_status_success={sheetsPushStatus === "success"}
+                        class:sheets_status_error={sheetsPushStatus === "error"}
+                        aria-live="polite"
+                    >
+                        {sheetsPushMessage}
+                    </p>
+                {/if}
                 {#if sheetsConfirmOpen}
                     <details class="rband_confirm rband_confirm_inline export_confirm" open aria-label="Google Sheets export confirmation">
                         <summary class="rband_confirm_summary">Confirm Google Sheets Export</summary>
@@ -329,20 +381,20 @@
         {#if openHelp === "sheets"}
             <div class="help_panel">
                 <ul>
-                    <li>Open Google Sheets → Extensions → Apps Script.</li>
+                    <li>No browser extension needed. On the Google Sheets website (sheets.google.com), open your sheet and go to Extensions → Apps Script.</li>
                     <li>
                         Paste this code and deploy as a web app:
-                        <code class="help_code"
-                            >function doPost(e) &#123; const data =
-                            JSON.parse(e.postData.contents); const sheet =
-                            SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
-                            sheet.clear();
-                            sheet.appendRow(['Title','Author','ISBN','Status','Rating']);
-                            data.books.forEach(b =&gt; sheet.appendRow([b.title,
-                            b.authors.join('; '), b.isbn13, b.status, b.rating
-                            || ''])); return
-                            ContentService.createTextOutput('ok'); &#125;</code
-                        >
+                        <div class="help_code_wrap">
+                            <button
+                                type="button"
+                                class="help_code_copy_btn"
+                                onclick={copySheetsCode}
+                                aria-label="Copy Apps Script code"
+                            >
+                                {copiedSheetsCode ? "Copied" : "Copy code"}
+                            </button>
+                            <code class="help_code">{sheetsAppsScriptCode}</code>
+                        </div>
                     </li>
                     <li>
                         Deploy → New deployment → Web app → Execute as "Me" →

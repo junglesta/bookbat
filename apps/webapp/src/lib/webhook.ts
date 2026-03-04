@@ -35,6 +35,25 @@ export function validateWebhookUrl(input: string): WebhookValidationResult {
     return { ok: false, error: "Webhook URL must be publicly reachable (not local)" };
   }
 
+  if (url.hostname === "script.google.com") {
+    if (url.pathname.endsWith("/dev")) {
+      return {
+        ok: false,
+        error: 'Use the deployed Apps Script Web App URL ending with "/exec" (not /dev)',
+      };
+    }
+
+    const bareDeploymentPath = url.pathname.match(/^\/macros\/s\/[^/]+$/);
+    if (bareDeploymentPath) {
+      url.pathname = `${url.pathname}/exec`;
+    } else if (!url.pathname.endsWith("/exec")) {
+      return {
+        ok: false,
+        error: 'Use the Apps Script Web App deployment URL (typically ending with "/exec")',
+      };
+    }
+  }
+
   return { ok: true, normalizedUrl: url.toString() };
 }
 
@@ -67,4 +86,20 @@ export async function formatWebhookError(resp: Response): Promise<string> {
   if (!detail) return base;
   const shortened = detail.length > 140 ? `${detail.slice(0, 140)}...` : detail;
   return `${base}: ${shortened}`;
+}
+
+export function formatWebhookClientError(error: unknown): string {
+  const message = error instanceof Error ? error.message : typeof error === "string" ? error : "";
+  const lower = message.toLowerCase();
+
+  if (
+    lower.includes("failed to fetch") ||
+    lower.includes("networkerror") ||
+    lower.includes("load failed")
+  ) {
+    return 'Network request failed. Check that your Apps Script is deployed as Web app (URL ends with "/exec") and access is set to "Anyone".';
+  }
+
+  if (message.trim().length > 0) return message;
+  return "Export failed";
 }

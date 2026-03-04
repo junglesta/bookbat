@@ -25,7 +25,8 @@ import SearchBar from '../components/SearchBar.svelte';
   let selectedBook = $state<Book | null>(null);
   let searchQuery = $state('');
   let statusFilter = $state<string>('all');
-  let sortBy = $state<'dateAdded' | 'title' | 'author' | 'rating'>('dateAdded');
+  let sortBy = $state<'dateAdded' | 'title' | 'author' | 'publisher' | 'rating'>('dateAdded');
+  let sortDirection = $state<'asc' | 'desc'>('desc');
   let sortMenuOpen = $state(false);
   let viewMode = $state<'card' | 'list'>('card');
   let languageFilter = $state<string>('all');
@@ -46,6 +47,7 @@ import SearchBar from '../components/SearchBar.svelte';
     { value: 'dateAdded' as const, label: 'Recent' },
     { value: 'title' as const, label: 'Title' },
     { value: 'author' as const, label: 'Author' },
+    { value: 'publisher' as const, label: 'Publisher' },
     { value: 'rating' as const, label: 'Rating' },
   ];
 
@@ -73,6 +75,10 @@ import SearchBar from '../components/SearchBar.svelte';
 
   function toggleSortMenu() {
     sortMenuOpen = !sortMenuOpen;
+  }
+
+  function toggleSortDirection() {
+    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
   }
 
   function toggleLanguageMenu() {
@@ -109,26 +115,24 @@ import SearchBar from '../components/SearchBar.svelte';
       );
     }
 
+    const direction = sortDirection === 'asc' ? 1 : -1;
     result = [...result].sort((a, b) => {
       switch (sortBy) {
         case 'title':
-          return a.title.localeCompare(b.title);
+          return a.title.localeCompare(b.title) * direction;
         case 'author':
-          return (a.authors[0] || '').localeCompare(b.authors[0] || '');
+          return (a.authors[0] || '').localeCompare(b.authors[0] || '') * direction;
+        case 'publisher':
+          return (a.publisher || '').localeCompare(b.publisher || '') * direction;
         case 'rating':
-          return (b.rating || 0) - (a.rating || 0);
+          return ((a.rating || 0) - (b.rating || 0)) * direction;
         case 'dateAdded':
         default:
-          return new Date(b.dateAdded).getTime() - new Date(a.dateAdded).getTime();
+          return (new Date(a.dateAdded).getTime() - new Date(b.dateAdded).getTime()) * direction;
       }
     });
 
     return result;
-  }
-
-  function countLabel(): string {
-    const count = getBooks().length;
-    return `${count} ${count === 1 ? "title" : "titles"}`;
   }
 
   function openImportPicker() {
@@ -217,13 +221,10 @@ import SearchBar from '../components/SearchBar.svelte';
       </button>
     </div>
     <div class="library_header_actions">
-      <span class="library_count" aria-label={`${getBooks().length} books in library`}>
-        {countLabel()}
-      </span>
-      <button class="view_toggle" onclick={dropLibrary} aria-label="Drop library">
+      <button class="view_toggle view_toggle_text" onclick={dropLibrary} aria-label="Drop library">
         Drop
       </button>
-      <button class="view_toggle" onclick={openImportPicker} aria-label="Import books">
+      <button class="view_toggle view_toggle_text" onclick={openImportPicker} aria-label="Import books">
         Import
       </button>
       <input
@@ -233,7 +234,7 @@ import SearchBar from '../components/SearchBar.svelte';
         style="display:none"
         onchange={handleImportChange}
       />
-      <button class="view_toggle" onclick={() => viewMode = viewMode === 'card' ? 'list' : 'card'} aria-label="Toggle view">
+      <button class="view_toggle view_toggle_icon" onclick={() => viewMode = viewMode === 'card' ? 'list' : 'card'} aria-label="Toggle view">
         {#if viewMode === 'card'}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
             <rect x="4" y="5" width="16" height="5" rx="1.2" />
@@ -250,14 +251,24 @@ import SearchBar from '../components/SearchBar.svelte';
       </button>
 
       <div class="sort_menu_wrap">
-        <button class="sort_trigger" onclick={toggleSortMenu} aria-label="Sort options">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
-            <path d="M7 4v14" />
-            <path d="m4 15 3 3 3-3" />
-            <path d="M17 20V6" />
-            <path d="m14 9 3-3 3 3" />
-          </svg>
-        </button>
+        <div class="sort_menu_controls">
+          <button
+            class="sort_direction_trigger"
+            onclick={toggleSortDirection}
+            aria-label="Reverse sort order"
+            title="Reverse sort order"
+          >
+            {sortDirection === 'asc' ? '↑' : '↓'}
+          </button>
+          <button class="sort_trigger" onclick={toggleSortMenu} aria-label="Sort options">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="24" height="24">
+              <path d="M7 4v14" />
+              <path d="m4 15 3 3 3-3" />
+              <path d="M17 20V6" />
+              <path d="m14 9 3-3 3 3" />
+            </svg>
+          </button>
+        </div>
 
         {#if sortMenuOpen}
           <div class="sort_dropdown">
@@ -313,7 +324,7 @@ import SearchBar from '../components/SearchBar.svelte';
           class="tab"
           class:active={statusFilter === opt.value}
           onclick={() => (statusFilter = opt.value)}
-        >{opt.label}</button>
+        >{opt.value === 'all' ? `All [${getBooks().length}]` : opt.label}</button>
       {/each}
     </div>
 

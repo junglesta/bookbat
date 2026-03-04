@@ -1,4 +1,9 @@
-import { formatWebhookError, getWebhookHost, validateWebhookUrl } from "./webhook";
+import {
+  formatWebhookClientError,
+  formatWebhookError,
+  getWebhookHost,
+  validateWebhookUrl,
+} from "./webhook";
 
 describe("validateWebhookUrl", () => {
   it("accepts valid https URL", () => {
@@ -30,6 +35,24 @@ describe("validateWebhookUrl", () => {
     expect(result.ok).toBe(false);
     expect(result.error).toContain("username/password");
   });
+
+  it("rejects Apps Script URLs that do not end with /exec", () => {
+    const result = validateWebhookUrl("https://script.google.com/macros/s/abc/usercallback");
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("deployment URL");
+  });
+
+  it("normalizes bare Apps Script deployment URLs to /exec", () => {
+    const result = validateWebhookUrl("https://script.google.com/macros/s/abc123");
+    expect(result.ok).toBe(true);
+    expect(result.normalizedUrl).toBe("https://script.google.com/macros/s/abc123/exec");
+  });
+
+  it("rejects Apps Script dev URLs", () => {
+    const result = validateWebhookUrl("https://script.google.com/macros/s/abc/dev");
+    expect(result.ok).toBe(false);
+    expect(result.error).toContain("/dev");
+  });
 });
 
 describe("getWebhookHost", () => {
@@ -55,5 +78,13 @@ describe("formatWebhookError", () => {
     const msg = await formatWebhookError(resp);
     expect(msg).toContain("422");
     expect(msg).toContain("invalid payload");
+  });
+});
+
+describe("formatWebhookClientError", () => {
+  it("returns guidance for network fetch failures", () => {
+    const msg = formatWebhookClientError(new TypeError("Failed to fetch"));
+    expect(msg).toContain("Network request failed");
+    expect(msg).toContain("/exec");
   });
 });

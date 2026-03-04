@@ -7,3 +7,6 @@ apps/*/.astro/
 .DS_Store
 certs/
 Icon
+
+# Local Netlify folder
+.netlify

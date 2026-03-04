@@ -52,13 +52,21 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             </label>
             <label class="bfc_control">
                 <span>Sort</span>
-                <select data-bfc-sort>
-                    <option value="title-asc">Title A-Z</option>
-                    <option value="title-desc">Title Z-A</option>
-                    <option value="author-asc">Author A-Z</option>
-                    <option value="year-desc">Year Newest</option>
-                    <option value="year-asc">Year Oldest</option>
-                </select>
+                <div class="bfc_sort_row">
+                    <select data-bfc-sort>
+                        <option value="title">Title</option>
+                        <option value="author">Author</option>
+                        <option value="publisher">Publisher</option>
+                        <option value="year">Year</option>
+                    </select>
+                    <button
+                        class="bfc_sort_direction"
+                        type="button"
+                        data-bfc-sort-direction
+                        aria-label="Reverse sort order"
+                        title="Reverse sort order">↑</button
+                    >
+                </div>
             </label>
         </div>
 
@@ -115,12 +123,12 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     };
 
     const sorters = {
-        "title-asc": (a, b) => (a.title || "").localeCompare(b.title || ""),
-        "title-desc": (a, b) => (b.title || "").localeCompare(a.title || ""),
-        "author-asc": (a, b) =>
+        title: (a, b) => (a.title || "").localeCompare(b.title || ""),
+        author: (a, b) =>
             (a.authors?.[0] || "").localeCompare(b.authors?.[0] || ""),
-        "year-desc": (a, b) => (b.publishYear || 0) - (a.publishYear || 0),
-        "year-asc": (a, b) => (a.publishYear || 0) - (b.publishYear || 0),
+        publisher: (a, b) =>
+            (a.publisher || "").localeCompare(b.publisher || ""),
+        year: (a, b) => (a.publishYear || 0) - (b.publishYear || 0),
     };
     const FORMULA_PREFIX_RE = /^[\t\r\n ]*[=+\-@]/;
     const PREFETCH_LIMIT = 120;
@@ -610,6 +618,9 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     function mount(root) {
         const searchInput = root.querySelector("[data-bfc-search]");
         const sortInput = root.querySelector("[data-bfc-sort]");
+        const sortDirectionInput = root.querySelector(
+            "[data-bfc-sort-direction]",
+        );
         const countNode = root.querySelector("[data-bfc-count]");
         const listNode = root.querySelector("[data-bfc-list]");
         const emptyNode = root.querySelector("[data-bfc-empty]");
@@ -626,7 +637,13 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             decodeURIComponent(root.dataset.books || "[]"),
         );
         let query = "";
-        let sort = "title-asc";
+        let sort = "title";
+        let sortDirection = "asc";
+
+        function syncSortDirectionControl() {
+            if (!sortDirectionInput) return;
+            sortDirectionInput.textContent = sortDirection === "asc" ? "↑" : "↓";
+        }
 
         function applyViewConfig() {
             if (headerNode) {
@@ -655,10 +672,11 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         }
 
         function render() {
-            const sorter = sorters[sort] || sorters["title-asc"];
+            const sorter = sorters[sort] || sorters.title;
+            const direction = sortDirection === "asc" ? 1 : -1;
             const filtered = books
                 .filter((book) => matchesQuery(book, query))
-                .sort(sorter);
+                .sort((a, b) => sorter(a, b) * direction);
 
             countNode.textContent = `${filtered.length} title${filtered.length === 1 ? "" : "s"}`;
             emptyNode.hidden = filtered.length > 0;
@@ -780,8 +798,16 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             render();
         });
 
+        syncSortDirectionControl();
+
         sortInput.addEventListener("change", (event) => {
             sort = event.target.value;
+            render();
+        });
+
+        sortDirectionInput?.addEventListener("click", () => {
+            sortDirection = sortDirection === "asc" ? "desc" : "asc";
+            syncSortDirectionControl();
             render();
         });
 
@@ -1006,6 +1032,25 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         gap: 6px;
         font-size: var(--fs-xs);
         color: var(--text-muted);
+    }
+
+    .bfc_sort_row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 46px;
+        gap: 8px;
+        align-items: stretch;
+    }
+
+    .bfc_sort_direction {
+        min-block-size: 46px;
+        border: 1px solid var(--border-input);
+        border-radius: var(--radius);
+        background: var(--bg-input);
+        color: var(--accent);
+        font: inherit;
+        font-size: var(--fs-md);
+        line-height: 1;
+        cursor: pointer;
     }
     .bfc_control.bfc_control--search > span {
         color: var(--accent);
