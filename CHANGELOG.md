@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1
+
+- Added per-status totals directly to all Library filter tabs (`All`, `To Read`, `Reading`, `Read`)
+- Simplified tab count display by removing square brackets from labels (`All 56` style)
+
 ## 0.8.0
 
 - Library sort UX upgrade in webapp: added Publisher sort support and refactored sorting into field + global direction toggle (`↑/↓`) instead of verbose per-option A/Z labels

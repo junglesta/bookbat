@@ -135,6 +135,11 @@ import SearchBar from '../components/SearchBar.svelte';
     return result;
   }
 
+  function statusCount(value: string): number {
+    if (value === 'all') return getBooks().length;
+    return getBooks().filter((b) => b.status === value).length;
+  }
+
   function openImportPicker() {
     importFeedbackError = "";
     importInputRef?.click();
@@ -324,7 +329,7 @@ import SearchBar from '../components/SearchBar.svelte';
           class="tab"
           class:active={statusFilter === opt.value}
           onclick={() => (statusFilter = opt.value)}
-        >{opt.value === 'all' ? `All [${getBooks().length}]` : opt.label}</button>
+        >{`${opt.label} ${statusCount(opt.value)}`}</button>
       {/each}
     </div>
 

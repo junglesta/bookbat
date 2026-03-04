@@ -21,22 +21,37 @@ your books, your list, your rules.
 - organize with status (to read / reading / read), ratings, notes, tags
 - search, filter, sort your whole library
 - export anywhere: JSON, CSV, Goodreads, LibraryThing, Google Sheets
-- works offline as a PWA — install it like a native app
+- import and merge automatically: JSON, CSV, Goodreads, LibraryThing
+- works offline as a PWA — install it and it's feels a native app
 
 ## WHAT
 
-a dead-simple book library app. point your camera at a barcode, get the book info, done.
+`BOOK BAT` and `BAOBAB` are one ecosystem. a symbiotic relationship.
 
-everything stays on your device in localStorage. nothing leaves the browser.
+BOOKBAT flies around with you:
 
-## NAMING
+- up the Shelves
+- into Town Center Libraries, 
+- Aat Street Book Fairs. 
+- teachers use BOOKBAT to put together Courses. 
+- friends use to quickly meno some titles they plan to AudioRead!
 
-`BOOK BAT` and `BAOBAB` are one ecosystem.
+BAOBAB keeps the booklists, for storage and **sharing is caring!**:
 
-- `BOOK BAT` is the active app layer: scan, edit, organize, export.
-- `BAOBAB` is the companion client layer: a rooted, durable view of your library data.
+- presents 
+- browse
+- share interesting read on your blog
+- extends it across static/client surfaces
+- demo
+ 
+technically :
+ 
+- `BOOK BAT` is the active app layer: scan, edit, organize, export. a dead-simple book library app. point your camera at a barcode, get the book info, done. everything stays on your device in localStorage. nothing leaves the browser.
 
-They are designed as a symbiotic relationship: BOOK BAT produces and curates your data, BAOBAB presents and extends it across static/client surfaces.
+- `BAOBAB` is the component client layer bulit on Astro cos we no need extra JS: a rooted, statically rendered, durable view of your library data.
+
+
+
 
 
 
