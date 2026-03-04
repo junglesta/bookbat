@@ -66,29 +66,6 @@
       "rating": 3
     },
     {
-      "id": "62429b27-a418-4361-add7-873c48a925b4",
-      "isbn13": "9789881806659",
-      "isbn10": "9881806658",
-      "title": "Bumbling through Borneo",
-      "authors": [
-        "Tom Schmidt"
-      ],
-      "publisher": "Kakibubu Media Limited",
-      "publishDate": "2009",
-      "publishYear": 2009,
-      "pageCount": 111,
-      "language": "eng",
-      "subjects": [
-        "Humor",
-        "Description and travel"
-      ],
-      "status": "read",
-      "dateAdded": "2026-02-25T20:05:19.187Z",
-      "source": "openlibrary",
-      "rating": 5,
-      "dateRead": "2026-02-26T00:54:16.498Z"
-    },
-    {
       "id": "bbc3c20a-ddb5-4352-8ed7-8c2279b9a967",
       "isbn13": "9780099908401",
       "isbn10": "0099908409",
@@ -195,22 +172,6 @@
       "dateAdded": "2026-02-25T20:08:58.475Z",
       "source": "openlibrary",
       "rating": 4
-    },
-    {
-      "id": "076c3076-bf9f-4091-8390-8e59a1e1eb41",
-      "isbn13": "9780850319927",
-      "isbn10": "0850319927",
-      "title": "Post Office",
-      "authors": [
-        "Charles Bukowski"
-      ],
-      "publishDate": "1988",
-      "publishYear": 1988,
-      "pageCount": 160,
-      "language": "en",
-      "status": "to-read",
-      "dateAdded": "2026-02-26T15:03:33.552Z",
-      "source": "googlebooks"
     },
     {
       "id": "580283e8-0b21-4663-9a1f-b5f8eb3cee16",
