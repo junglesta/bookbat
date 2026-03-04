@@ -13,12 +13,10 @@ Before running anything, identify release target:
 
 - `webapp` release (BOOKBAT app): bump
   - `apps/webapp/package.json`
-  - root `package.json` (workspace version mirror)
   - `CHANGELOG.md` with `0.8.x` entry
 - `astro-site` release (BAOBAB component): bump
   - `apps/astro-site/package.json`
   - do **not** bump `apps/webapp/package.json`
-  - do **not** bump root `package.json`
   - `CHANGELOG.md` entry must clearly say Astro/BAOBAB release (for example `0.1.x`)
 
 If user says only BAOBAB/Astro changed, treat it as `astro-site` release by default.
