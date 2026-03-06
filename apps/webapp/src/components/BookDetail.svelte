@@ -21,6 +21,7 @@
   let notes = $state('');
   let tagsInput = $state('');
   let saving = $state(false);
+  let sharingBook = $state(false);
   let copyingBookText = $state(false);
   let copiedBookText = $state(false);
   let copiedBookTextTimer: ReturnType<typeof setTimeout> | null = null;
@@ -89,6 +90,10 @@
     );
   });
 
+  const canNativeShare = $derived.by(
+    () => typeof navigator !== 'undefined' && typeof navigator.share === 'function',
+  );
+
   function pickStatus(value: Book['status']) {
     status = value;
     statusOpen = false;
@@ -125,6 +130,27 @@
     }
   }
 
+  function isShareAbortError(error: unknown): boolean {
+    return typeof error === 'object' && error !== null && 'name' in error && error.name === 'AbortError';
+  }
+
+  async function shareBook() {
+    if (!canNativeShare || sharingBook) return;
+    sharingBook = true;
+    try {
+      await navigator.share({
+        title: book.title,
+        text: generateBookText(book),
+      });
+    } catch (error: unknown) {
+      if (!isShareAbortError(error)) {
+        showToast('Could not share book.');
+      }
+    } finally {
+      sharingBook = false;
+    }
+  }
+
   async function copyBookText() {
     if (copyingBookText) return;
     copyingBookText = true;
@@ -136,7 +162,6 @@
         copiedBookText = false;
         copiedBookTextTimer = null;
       }, 1200);
-      showToast('Book copied to clipboard.');
     } catch {
       showToast('Could not copy book text.');
     } finally {
@@ -294,19 +319,68 @@
       </label>
     </div>
 
-    <div class="detail_actions">
+    <div class="detail_actions" class:detail_actions_four={canNativeShare}>
+      {#if canNativeShare}
+        <button class="btn btn_secondary" onclick={shareBook} disabled={sharingBook}>
+          <span class="detail_action_button_inner">
+            {#if !sharingBook}
+              <span class="detail_action_icon_wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                  <circle cx="18" cy="5.5" r="2" stroke-width="2" />
+                  <circle cx="6" cy="12" r="2" stroke-width="2" />
+                  <circle cx="18" cy="18.5" r="2" stroke-width="2" />
+                  <path d="M8 11l8-4" stroke-width="2" />
+                  <path d="M8 13l8 4" stroke-width="2" />
+                </svg>
+              </span>
+            {/if}
+            <span class="detail_action_label">
+              {#if sharingBook}
+                <span>LET'S</span>
+                <span>DO</span>
+                <span>IT</span>
+              {:else}
+                <span>Share</span>
+                <span>Book</span>
+              {/if}
+            </span>
+          </span>
+        </button>
+      {/if}
       <button
         class="btn btn_secondary"
         class:detail_action_copy_success={copiedBookText}
         onclick={copyBookText}
         disabled={copyingBookText}
       >
-        {copyingBookText ? 'Copying...' : copiedBookText ? 'Copied!' : 'Copy Book Info'}
+        <span class="detail_action_button_inner">
+          {#if !copyingBookText && !copiedBookText}
+            <span class="detail_action_icon_wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                <rect x="9" y="9" width="11" height="11" rx="2" stroke-width="2" />
+                <path d="M6 15H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v1" stroke-width="2" />
+              </svg>
+            </span>
+          {/if}
+          <span class="detail_action_label">
+            {#if copyingBookText}
+              <span>Copying...</span>
+            {:else if copiedBookText}
+              <span>COPIED</span>
+              <span>TO YOUR</span>
+              <span>CLIPBOARD</span>
+            {:else}
+              <span>Copy</span>
+              <span>Book</span>
+              <span>Info</span>
+            {/if}
+          </span>
+        </span>
       </button>
+      <button class="btn btn_danger" onclick={remove}>Remove</button>
       <button class="btn btn_primary" onclick={save} disabled={saving || !hasChanges}>
         {saving ? 'Saving...' : 'Save'}
       </button>
-      <button class="btn btn_danger" onclick={remove}>Remove</button>
     </div>
 
     {#if removeConfirmOpen}

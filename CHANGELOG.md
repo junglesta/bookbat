@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.6
+
+- Added native single-book share from Book Details via the Browser Share API, alongside the existing `Copy Book Info` action
+- Refined Book Details action layout and feedback states: stable 2x2 button grid, responsive icon/text composition, inline-only success messaging, and cleaner share/copy visual treatment
+- Re-ran preflight gates (`pnpm format`, `pnpm lint`, `pnpm test`, `pnpm build`) with passing results
+
 ## 0.8.5
 
 - Added single-book plain-text clipboard export from Book Details via `Copy Book Info`, with inline animated `Copied!` feedback

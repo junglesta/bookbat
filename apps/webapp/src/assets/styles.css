@@ -1527,10 +1527,75 @@ h1 .count {
 .detail_actions {
   display: flex;
   gap: 8px;
+  flex-wrap: nowrap;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.detail_actions.detail_actions_four {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .detail_actions .btn {
-  flex: 1;
+  flex: 1 1 0;
+  min-width: 0;
+  width: 100%;
+}
+
+.detail_actions.detail_actions_four .btn {
+  flex: initial;
+}
+
+.detail_actions .btn svg {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  color: var(--primary);
+  stroke-width: 1.8;
+}
+
+.detail_actions .btn_secondary {
+  color: var(--primary);
+}
+
+.detail_action_button_inner {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  gap: 6px;
+}
+
+.detail_action_icon_wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail_action_label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  text-align: left;
+  line-height: 1.05;
+}
+
+.detail_action_label span {
+  display: block;
+}
+
+@media (min-width: 640px) {
+  .detail_action_label {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0 0.35em;
+  }
+
+  .detail_action_label span {
+    display: inline;
+  }
 }
 
 .detail_action_copy_success {
