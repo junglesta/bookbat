@@ -22,7 +22,7 @@ import SearchBar from '../components/SearchBar.svelte';
 
   onMount(() => { loadBooks(); });
 
-  let selectedBook = $state<Book | null>(null);
+  let selectedBookId = $state<string | null>(null);
   let searchQuery = $state('');
   let statusFilter = $state<string>('all');
   let sortBy = $state<'dateAdded' | 'title' | 'author' | 'publisher' | 'rating'>('dateAdded');
@@ -35,6 +35,10 @@ import SearchBar from '../components/SearchBar.svelte';
   let dropConfirmOpen = $state(false);
   let importFeedbackError = $state("");
   let libraryNameInfoOpen = $state(false);
+
+  const selectedBook = $derived.by(() =>
+    selectedBookId ? getBooks().find((book) => book.id === selectedBookId) || null : null
+  );
 
   const statusOptions = [
     { value: 'all', label: 'All' },
@@ -159,7 +163,7 @@ import SearchBar from '../components/SearchBar.svelte';
 
   function confirmDropLibrary() {
     clearLibraryCollection();
-    selectedBook = null;
+    selectedBookId = null;
     dropConfirmOpen = false;
   }
 
@@ -367,8 +371,8 @@ import SearchBar from '../components/SearchBar.svelte';
     <BookList
       books={filteredBooks()}
       selectedBook={selectedBook}
-      onSelect={(b) => (selectedBook = b)}
-      onCloseDetail={() => (selectedBook = null)}
+      onSelect={(b) => (selectedBookId = b.id)}
+      onCloseDetail={() => (selectedBookId = null)}
       compact={viewMode === 'list'}
     />
   {/if}

@@ -1430,6 +1430,16 @@ h1 .count {
   margin-top: 3px;
 }
 
+.detail_synopsis {
+  margin-top: 12px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 /* ===== Form ===== */
 .detail_form {
   display: flex;
@@ -1521,6 +1531,27 @@ h1 .count {
 
 .detail_actions .btn {
   flex: 1;
+}
+
+.detail_action_copy_success {
+  animation: detail_copy_pulse 0.7s ease;
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+@keyframes detail_copy_pulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(212, 255, 0, 0);
+  }
+  35% {
+    transform: scale(1.03);
+    box-shadow: 0 0 0 8px rgba(212, 255, 0, 0.12);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 rgba(212, 255, 0, 0);
+  }
 }
 
 .detail_panel .rband_confirm_inline {

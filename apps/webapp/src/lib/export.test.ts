@@ -1,4 +1,9 @@
-import { generateCsv, generateGoodreadsCsv, generateLibraryThingTsv } from "./export";
+import {
+  generateBookText,
+  generateCsv,
+  generateGoodreadsCsv,
+  generateLibraryThingTsv,
+} from "./export";
 import type { Book } from "./types";
 
 function makeBook(overrides: Partial<Book> = {}): Book {
@@ -155,5 +160,41 @@ describe("generateLibraryThingTsv", () => {
   it("neutralizes formula-like cells", () => {
     const tsv = generateLibraryThingTsv([makeBook({ title: "  =1+1" })]);
     expect(tsv).toContain("'  =1+1");
+  });
+});
+
+describe("generateBookText", () => {
+  it("formats the most important single-book fields as plain text", () => {
+    const text = generateBookText(
+      makeBook({
+        title: "Contemporary Melbourne architecture",
+        authors: ["Joe Rollo"],
+        publisher: "UNSW Press",
+        publishYear: 1999,
+        pageCount: 192,
+        isbn13: "9780868405469",
+      }),
+    );
+
+    expect(text).toBe(
+      [
+        "Contemporary Melbourne architecture",
+        "Joe Rollo",
+        "UNSW Press",
+        "1999",
+        "192 pages",
+        "ISBN: 9780868405469",
+      ].join("\n"),
+    );
+  });
+
+  it("includes synopsis only when present", () => {
+    const text = generateBookText(
+      makeBook({
+        synopsis: "A concise synopsis.",
+      }),
+    );
+
+    expect(text).toContain("A concise synopsis.");
   });
 });

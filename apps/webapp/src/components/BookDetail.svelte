@@ -1,8 +1,9 @@
 <script lang="ts">
   import type { Book } from '../lib/types';
-  import { updateBookInCollection, removeBookFromCollection, setBookCoverUrl } from '../lib/stores.svelte.ts';
+  import { showToast, updateBookInCollection, removeBookFromCollection, setBookCoverUrl } from '../lib/stores.svelte.ts';
   import { getCoverCandidates } from '../lib/cover';
   import { lookupIsbn } from '../lib/isbn-lookup';
+  import { generateBookText } from '../lib/export';
 
   interface Props {
     book: Book;
@@ -20,6 +21,9 @@
   let notes = $state('');
   let tagsInput = $state('');
   let saving = $state(false);
+  let copyingBookText = $state(false);
+  let copiedBookText = $state(false);
+  let copiedBookTextTimer: ReturnType<typeof setTimeout> | null = null;
   let backfillingSynopsis = $state(false);
   let synopsisBackfillAttemptedBookId = $state<string | null>(null);
   let statusOpen = $state(false);
@@ -113,11 +117,30 @@
       const lookedUp = await lookupIsbn(isbn13);
       const synopsis = lookedUp?.synopsis?.trim();
       if (!synopsis) return;
-      await updateBookInCollection(bookId, { synopsis }, { silent: true });
+      book = await updateBookInCollection(bookId, { synopsis }, { silent: true });
     } catch {
       // ignore background enrichment failures
     } finally {
       backfillingSynopsis = false;
+    }
+  }
+
+  async function copyBookText() {
+    if (copyingBookText) return;
+    copyingBookText = true;
+    try {
+      await navigator.clipboard.writeText(generateBookText(book));
+      copiedBookText = true;
+      if (copiedBookTextTimer) clearTimeout(copiedBookTextTimer);
+      copiedBookTextTimer = setTimeout(() => {
+        copiedBookText = false;
+        copiedBookTextTimer = null;
+      }, 1200);
+      showToast('Book copied to clipboard.');
+    } catch {
+      showToast('Could not copy book text.');
+    } finally {
+      copyingBookText = false;
     }
   }
 
@@ -220,7 +243,7 @@
         {/if}
         <p class="detail_isbn">ISBN: {book.isbn13}</p>
         {#if book.synopsis}
-          <p>{book.synopsis}</p>
+          <p class="detail_synopsis">{book.synopsis}</p>
         {/if}
       </div>
     </div>
@@ -272,6 +295,14 @@
     </div>
 
     <div class="detail_actions">
+      <button
+        class="btn btn_secondary"
+        class:detail_action_copy_success={copiedBookText}
+        onclick={copyBookText}
+        disabled={copyingBookText}
+      >
+        {copyingBookText ? 'Copying...' : copiedBookText ? 'Copied!' : 'Copy Book Info'}
+      </button>
       <button class="btn btn_primary" onclick={save} disabled={saving || !hasChanges}>
         {saving ? 'Saving...' : 'Save'}
       </button>

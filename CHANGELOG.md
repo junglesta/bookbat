@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.8.5
+
+- Added single-book plain-text clipboard export from Book Details via `Copy Book Info`, with inline animated `Copied!` feedback
+- Fixed synopsis rendering overflow in Book Details so long unbroken text or URLs no longer cause horizontal scrolling
+- Fixed background synopsis enrichment refresh so fetched synopsis appears immediately in the open detail view without needing a close/reopen cycle
+- Re-ran preflight gates (`pnpm format`, `pnpm lint`, `pnpm test`, `pnpm build`) with passing results
+
 ## 0.8.4
 
 - Added API-driven book synopsis support to the webapp `Book` model and detail view rendering

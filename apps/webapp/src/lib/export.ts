@@ -124,6 +124,22 @@ export function generateLibraryThingTsv(books: Book[]): string {
   return [headers.join("\t"), ...rows.map((r) => r.join("\t"))].join("\n");
 }
 
+export function generateBookText(book: Book): string {
+  const lines = [
+    book.title,
+    book.authors.join(", "),
+    book.publisher,
+    book.publishYear?.toString(),
+    book.pageCount ? `${book.pageCount} pages` : undefined,
+    `ISBN: ${book.isbn13}`,
+    book.synopsis?.trim() || undefined,
+  ];
+
+  return lines
+    .filter((line): line is string => typeof line === "string" && line.trim().length > 0)
+    .join("\n");
+}
+
 export function downloadBlob(content: string, filename: string, mimeType: string): void {
   const blob = new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);

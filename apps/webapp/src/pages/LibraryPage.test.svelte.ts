@@ -62,12 +62,20 @@ function makeBook(overrides: Partial<Book> = {}): Book {
 }
 
 describe("LibraryPage", () => {
+  let booksState: Book[];
+
   beforeEach(() => {
     vi.clearAllMocks();
     isLoading.mockReturnValue(false);
     getLibraryName.mockReturnValue("Library");
-    getBooks.mockReturnValue([makeBook()]);
-    updateBookInCollection.mockResolvedValue(makeBook({ status: "read" }));
+    booksState = [makeBook()];
+    getBooks.mockImplementation(() => booksState);
+    updateBookInCollection.mockImplementation(async (id: string, updates: Partial<Book>) => {
+      const index = booksState.findIndex((book) => book.id === id);
+      const updated = { ...booksState[index], ...updates };
+      booksState = booksState.map((book) => (book.id === id ? updated : book));
+      return updated;
+    });
     removeBookFromCollection.mockResolvedValue(undefined);
     clearLibraryCollection.mockImplementation(() => {});
     importBooksToCollection.mockReturnValue({ total: 0, added: 0, skipped: 0, failed: 0 });
@@ -112,6 +120,8 @@ describe("LibraryPage", () => {
         { silent: true },
       );
     });
+
+    expect(await screen.findByText("Recovered synopsis.")).toBeTruthy();
   });
 
   it("removes a book after confirmation", async () => {
