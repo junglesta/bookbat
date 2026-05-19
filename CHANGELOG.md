@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.8.9
+
+- Bumped Astro to ^6.3.5 in `@bookbat/astro-site`
+- Bumped webapp toolchain to latest: Vite 8, TypeScript 6, Vitest 4.1, Svelte 5.55, `@sveltejs/vite-plugin-svelte` 7, jsdom 29, Biome 2.4.15
+- Re-ran preflight gates (`pnpm format`, `pnpm lint`, `pnpm test`, `pnpm build`) with passing results
+
 ## 0.8.8
 
 - Added real import merge behavior for duplicate ISBNs: new books append, missing metadata can be filled in, and personal fields are preserved instead of overwritten
