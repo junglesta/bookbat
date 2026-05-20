@@ -4,7 +4,8 @@ import { resolve } from 'node:path';
 const ROOT = process.cwd();
 const SOURCE_FILE = process.env.LIBRARY_SOURCE_FILE || 'data/library.json';
 const sourcePath = resolve(ROOT, SOURCE_FILE);
-const webappPublicPath = resolve(ROOT, 'apps/webapp/src/public/library.json');
+const bookbatPublicPath = resolve(ROOT, 'apps/bookbat/src/public/library.json');
+const baobabPath = resolve(ROOT, 'apps/baobab/src/data/library.json');
 
 function isBook(value) {
   if (!value || typeof value !== 'object') return false;
@@ -28,18 +29,15 @@ async function main() {
   const parsed = JSON.parse(raw);
   const collection = normalizeCollection(parsed);
 
-  await mkdir(resolve(ROOT, 'apps/webapp/src/public'), { recursive: true });
-  await writeFile(webappPublicPath, JSON.stringify(collection, null, 2) + '\n');
+  await mkdir(resolve(ROOT, 'apps/bookbat/src/public'), { recursive: true });
+  await writeFile(bookbatPublicPath, JSON.stringify(collection, null, 2) + '\n');
 
-  // Keep Astro's local fallback data in sync for editor previews.
-  await mkdir(resolve(ROOT, 'apps/astro-site/src/data'), { recursive: true });
-  await writeFile(
-    resolve(ROOT, 'apps/astro-site/src/data/library.json'),
-    JSON.stringify(collection, null, 2) + '\n',
-  );
+  // Keep BAOBAB's local fallback data in sync for editor previews.
+  await mkdir(resolve(ROOT, 'apps/baobab/src/data'), { recursive: true });
+  await writeFile(baobabPath, JSON.stringify(collection, null, 2) + '\n');
 
   console.log(
-    `Synced ${SOURCE_FILE} -> apps/webapp/src/public/library.json and apps/astro-site/src/data/library.json`,
+    `Synced ${SOURCE_FILE} -> apps/bookbat/src/public/library.json and apps/baobab/src/data/library.json`,
   );
 }
 

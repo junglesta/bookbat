@@ -11,15 +11,15 @@ Pre-deploy checklist for this repo (client-only static build). Run this before e
 
 Before running anything, identify release target:
 
-- `webapp` release (BOOKBAT app): bump
-  - `apps/webapp/package.json`
-  - `CHANGELOG.md` with `0.8.x` entry
-- `astro-site` release (BAOBAB component): bump
-  - `apps/astro-site/package.json`
-  - do **not** bump `apps/webapp/package.json`
-  - `CHANGELOG.md` entry must clearly say Astro/BAOBAB release (for example `0.1.x`)
+- `bookbat` release (BOOKBAT app, Svelte/Vite): bump
+  - `apps/bookbat/package.json`
+  - `CHANGELOG.md` (root — this is the BOOKBAT changelog) with `0.8.x` entry
+- `baobab` release (BAOBAB Astro component): bump
+  - `apps/baobab/package.json`
+  - do **not** bump `apps/bookbat/package.json` or root `CHANGELOG.md`
+  - update `apps/baobab/CHANGELOG.md` instead
 
-If user says only BAOBAB/Astro changed, treat it as `astro-site` release by default.
+If user says only BAOBAB/Astro changed, treat it as `baobab` release by default.
 
 ## Steps
 
@@ -45,4 +45,4 @@ Keep it short. Version number, pipe, what changed.
 - This repo is static client-side (no Hono/server deploy checks in preflight)
 - If `pnpm build` fails, re-run `pnpm test` and `pnpm build` separately and report the first failing command
 - Check Netlify deploy status after push at the deploy_check URL
-- Never bump `webapp`/root version for Astro-only copy/style changes
+- Never bump `bookbat` version for BAOBAB-only copy/style changes (and vice versa)

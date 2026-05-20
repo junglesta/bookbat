@@ -5,21 +5,22 @@ BASE_REF="${CACHED_COMMIT_REF:-}"
 HEAD_REF="${COMMIT_REF:-}"
 
 if [[ -z "$BASE_REF" || -z "$HEAD_REF" ]]; then
-  echo "Missing Netlify commit refs; do not skip astro build."
+  echo "Missing Netlify commit refs; do not skip BOOKBAT build."
   exit 1
 fi
 
 if git diff --quiet "$BASE_REF" "$HEAD_REF" -- \
-  apps/astro-site \
+  apps/bookbat \
   packages/library-core \
   data \
   scripts \
   package.json \
   pnpm-lock.yaml \
-  pnpm-workspace.yaml; then
-  echo "No astro-related changes detected; skipping astro deploy."
+  pnpm-workspace.yaml \
+  netlify.toml; then
+  echo "No BOOKBAT-related changes detected; skipping BOOKBAT deploy."
   exit 0
 fi
 
-echo "Astro-related changes detected; running astro deploy."
+echo "BOOKBAT-related changes detected; running BOOKBAT deploy."
 exit 1

@@ -5,7 +5,7 @@ import {
     type BookBatClientConfigOverride,
 } from "../../config/bookbat-client.config";
 import { version as baobabVersion } from "../../../package.json";
-import { version as bookbatVersion } from "../../../../webapp/package.json";
+import { version as bookbatVersion } from "../../../../bookbat/package.json";
 
 interface Props {
     books?: LibraryBook[];
@@ -56,10 +56,12 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 <span>Sort</span>
                 <div class="bfc_sort_row">
                     <select data-bfc-sort>
-                        <option value="title">Title</option>
+                        <option value="recent">Recent</option>
+                        <option value="title" selected>Title</option>
                         <option value="author">Author</option>
                         <option value="publisher">Publisher</option>
                         <option value="year">Year</option>
+                        <option value="rating">Rating</option>
                     </select>
                     <button
                         class="bfc_sort_direction"
@@ -72,7 +74,103 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             </label>
         </div>
 
-        <p class="bfc_count" data-bfc-count>0 titles</p>
+        <div class="bfc_filter_row">
+            <div
+                class="bfc_status_tabs"
+                role="tablist"
+                data-bfc-status-tabs
+            ></div>
+            <label class="bfc_lang_filter">
+                <span class="bfc_lang_filter_label">Language</span>
+                <select data-bfc-language>
+                    <option value="all">All</option>
+                </select>
+            </label>
+            <div
+                class="bfc_view_switch"
+                role="group"
+                aria-label="View mode"
+            >
+                <button
+                    type="button"
+                    class="bfc_view_seg"
+                    data-bfc-view="card"
+                    aria-label="Card view"
+                    title="Card view"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                    >
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                    </svg>
+                </button>
+                <button
+                    type="button"
+                    class="bfc_view_seg"
+                    data-bfc-view="list"
+                    aria-label="List view"
+                    title="List view"
+                >
+                    <svg
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        width="16"
+                        height="16"
+                        aria-hidden="true"
+                    >
+                        <line x1="4" y1="6" x2="20" y2="6"></line>
+                        <line x1="4" y1="12" x2="20" y2="12"></line>
+                        <line x1="4" y1="18" x2="20" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+            <button
+                type="button"
+                class="bfc_expand_toggle"
+                data-bfc-expand-toggle
+                aria-label="Expand all cards"
+                title="Expand all cards"
+            >
+                <span
+                    class="bfc_expand_toggle_label"
+                    data-bfc-expand-label
+                    >Expand all</span
+                >
+                <svg
+                    class="bfc_expand_toggle_icon"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    width="16"
+                    height="16"
+                    aria-hidden="true"
+                >
+                    <rect x="3" y="4" width="18" height="4" rx="1"></rect>
+                    <rect x="3" y="11" width="18" height="4" rx="1"></rect>
+                    <rect x="3" y="18" width="18" height="4" rx="1"></rect>
+                </svg>
+            </button>
+        </div>
+
+        <p class="bfc_count" data-bfc-count hidden>0 titles</p>
         <div class="bfc_list" data-bfc-list></div>
         <p class="bfc_empty" data-bfc-empty hidden>
             No books match your filters.
@@ -162,9 +260,22 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         publisher: (a, b) =>
             (a.publisher || "").localeCompare(b.publisher || ""),
         year: (a, b) => (a.publishYear || 0) - (b.publishYear || 0),
+        recent: (a, b) => {
+            const ta = a.dateAdded ? Date.parse(a.dateAdded) || 0 : 0;
+            const tb = b.dateAdded ? Date.parse(b.dateAdded) || 0 : 0;
+            return ta - tb;
+        },
+        rating: (a, b) => (Number(a.rating) || 0) - (Number(b.rating) || 0),
     };
+
+    const statusFilterOptions = [
+        { value: "all", label: "All" },
+        { value: "to-read", label: "To Read" },
+        { value: "reading", label: "Reading" },
+        { value: "read", label: "Read" },
+    ];
     const FORMULA_PREFIX_RE = /^[\t\r\n ]*[=+\-@]/;
-    const PREFETCH_LIMIT = 120;
+    const PREFETCH_LIMIT = 500;
     const prefetchedCoverUrls = new Set();
     const defaultClientConfig = {
         showHeader: true,
@@ -337,8 +448,16 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     function coverUrl(book) {
         if (book.coverUrl && book.coverUrl.startsWith("https://"))
             return book.coverUrl;
-        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(book.isbn13)}-M.jpg?default=false`;
+        // No `?default=false`: openlibrary then always returns 200, with a tiny
+        // transparent placeholder when the cover is missing. We detect that case
+        // via naturalWidth in the load handler. Avoiding 404 keeps the service
+        // worker from caching poisoned opaque responses across sessions.
+        return `https://covers.openlibrary.org/b/isbn/${encodeURIComponent(book.isbn13)}-M.jpg`;
     }
+
+    // A real cover from openlibrary is at least ~50px wide; smaller means the
+    // server returned a 1×1 transparent placeholder.
+    const COVER_MIN_WIDTH = 10;
 
     function statusChip(book) {
         const status = book.status || "to-read";
@@ -347,6 +466,20 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             : "";
         const year = book.publishYear ? ` ${book.publishYear}` : "";
         return `${statusLabel[status] || "To Read"}${rating}${year}`;
+    }
+
+    function generateBookText(book, { includeTitle = true } = {}) {
+        return [
+            includeTitle ? book.title : "",
+            (book.authors || []).join(", "),
+            book.publisher,
+            book.publishYear ? String(book.publishYear) : "",
+            book.pageCount ? `${book.pageCount} pages` : "",
+            book.isbn13 ? `ISBN: ${book.isbn13}` : "",
+            (book.synopsis || "").trim(),
+        ]
+            .filter((line) => typeof line === "string" && line.trim().length > 0)
+            .join("\n");
     }
 
     function matchesQuery(book, query) {
@@ -657,6 +790,12 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         const countNode = root.querySelector("[data-bfc-count]");
         const listNode = root.querySelector("[data-bfc-list]");
         const emptyNode = root.querySelector("[data-bfc-empty]");
+        const statusTabsNode = root.querySelector("[data-bfc-status-tabs]");
+        const languageInput = root.querySelector("[data-bfc-language]");
+        const viewSwitchNode = root.querySelector(".bfc_view_switch");
+        const viewSegButtons = root.querySelectorAll("[data-bfc-view]");
+        const expandToggleBtn = root.querySelector("[data-bfc-expand-toggle]");
+        const expandLabelNode = root.querySelector("[data-bfc-expand-label]");
         const exportWrapNode = root.querySelector(".bfc_export_wrap");
         const exportSlotNode = root.querySelector("[data-bfc-export-slot]");
         const headerNode = root.querySelector("[data-bfc-header]");
@@ -672,6 +811,79 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         let query = "";
         let sort = "title";
         let sortDirection = "asc";
+        let statusFilter = "all";
+        let languageFilter = "all";
+        let viewMode = "list";
+
+        function applyViewMode() {
+            listNode.classList.toggle("bfc_list--compact", viewMode === "list");
+            viewSegButtons.forEach((btn) => {
+                const isActive = btn.dataset.bfcView === viewMode;
+                btn.classList.toggle("bfc_view_seg--active", isActive);
+                btn.setAttribute("aria-pressed", isActive ? "true" : "false");
+            });
+        }
+
+        function bookLanguage(book) {
+            return (book.language || "").trim();
+        }
+
+        function uniqueLanguages() {
+            const set = new Set();
+            for (const b of books) {
+                set.add(bookLanguage(b));
+            }
+            return [...set].sort((a, b) => {
+                if (a === "") return 1;
+                if (b === "") return -1;
+                return a.localeCompare(b);
+            });
+        }
+
+        function syncLanguageOptions() {
+            if (!languageInput) return;
+            const langs = uniqueLanguages();
+            const opts = ['<option value="all">All</option>'];
+            for (const lang of langs) {
+                const value = lang === "" ? "__none__" : lang;
+                const label = lang === "" ? "(unspecified)" : lang;
+                opts.push(
+                    `<option value="${escapeHtml(value)}">${escapeHtml(label)}</option>`,
+                );
+            }
+            languageInput.innerHTML = opts.join("");
+            languageInput.value = languageFilter;
+            if (languageInput.value !== languageFilter) {
+                languageFilter = "all";
+                languageInput.value = "all";
+            }
+        }
+
+        function matchesLanguage(book) {
+            if (languageFilter === "all") return true;
+            const lang = bookLanguage(book);
+            if (languageFilter === "__none__") return lang === "";
+            return lang === languageFilter;
+        }
+
+        function bookStatus(book) {
+            return book.status || "to-read";
+        }
+
+        function statusCount(value) {
+            if (value === "all") return books.length;
+            return books.filter((b) => bookStatus(b) === value).length;
+        }
+
+        function renderStatusTabs() {
+            if (!statusTabsNode) return;
+            statusTabsNode.innerHTML = statusFilterOptions
+                .map((opt) => {
+                    const isActive = statusFilter === opt.value;
+                    return `<button type="button" class="bfc_status_tab${isActive ? " bfc_status_tab--active" : ""}" data-bfc-status-tab="${opt.value}" role="tab" aria-selected="${isActive}"><span class="bfc_status_tab_label">${escapeHtml(opt.label)}</span> <span class="bfc_status_tab_count">${statusCount(opt.value)}</span></button>`;
+                })
+                .join("");
+        }
 
         function syncSortDirectionControl() {
             if (!sortDirectionInput) return;
@@ -706,9 +918,17 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         }
 
         function render() {
+            renderStatusTabs();
+            syncLanguageOptions();
             const sorter = sorters[sort] || sorters.title;
             const direction = sortDirection === "asc" ? 1 : -1;
             const filtered = books
+                .filter(
+                    (book) =>
+                        statusFilter === "all" ||
+                        bookStatus(book) === statusFilter,
+                )
+                .filter(matchesLanguage)
                 .filter((book) => matchesQuery(book, query))
                 .sort((a, b) => sorter(a, b) * direction);
 
@@ -728,6 +948,9 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                         ? `${escapeHtml(book.pageCount)} pages`
                         : "";
                     const notes = book.notes ? escapeHtml(book.notes) : "";
+                    const synopsis = book.synopsis
+                        ? escapeHtml(book.synopsis)
+                        : "";
                     const tags = Array.isArray(book.tags)
                         ? book.tags.map((tag) => escapeHtml(tag)).join(", ")
                         : "";
@@ -738,8 +961,9 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                     const cover = escapeHtml(coverUrl(book));
                     const chip = escapeHtml(statusChip(book));
 
+                    const bookId = escapeHtml(book.id || "");
                     return `
-            <details class="bfc_item">
+            <details class="bfc_item" data-bfc-book-id="${bookId}">
               <summary class="bfc_summary">
                 <div class="bfc_cover_wrap">
                   <div class="bfc_cover_placeholder" data-bfc-cover-placeholder aria-hidden="true">
@@ -767,6 +991,17 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 </div>
               </summary>
               <div class="bfc_detail">
+                <div class="bfc_detail_cover" data-bfc-detail-cover>
+                  <img
+                    class="bfc_detail_cover_img"
+                    data-bfc-detail-cover-img
+                    src="${cover}"
+                    alt="${title}"
+                    loading="lazy"
+                    decoding="async"
+                    referrerpolicy="no-referrer"
+                  />
+                </div>
                 ${publisher ? `<p><strong>Publisher:</strong> ${publisher}</p>` : ""}
                 ${year ? `<p><strong>Year:</strong> ${year}</p>` : ""}
                 ${pages ? `<p><strong>Pages:</strong> ${pages}</p>` : ""}
@@ -774,6 +1009,14 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 ${notes ? `<p><strong>Notes:</strong> ${notes}</p>` : ""}
                 ${tags ? `<p><strong>Tags:</strong> ${tags}</p>` : ""}
                 <p><strong>ISBN-13:</strong> ${isbn13}</p>
+                ${synopsis ? `<p class="bfc_synopsis"><strong>Synopsis:</strong> ${synopsis}</p>` : ""}
+                <div class="bfc_actions" data-bfc-actions>
+                  <button type="button" class="bfc_action_btn" data-bfc-share="${bookId}" hidden>Share</button>
+                  <a class="bfc_action_btn" data-bfc-email="${bookId}" href="#" role="button">Email</a>
+                  <button type="button" class="bfc_action_btn" data-bfc-copy="${bookId}">
+                    <span data-bfc-copy-label>Copy book info</span>
+                  </button>
+                </div>
               </div>
             </details>
           `;
@@ -811,21 +1054,134 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                     );
                 };
 
+                const settle = () => {
+                    if (img.naturalWidth >= COVER_MIN_WIDTH) markLoaded();
+                    else markFailed();
+                };
+
                 if (img.complete) {
-                    if (img.naturalWidth > 0) {
-                        markLoaded();
-                    } else {
-                        markFailed();
-                    }
+                    settle();
                     return;
                 }
 
-                img.addEventListener("load", markLoaded, { once: true });
+                img.addEventListener("load", settle, { once: true });
                 img.addEventListener("error", markFailed, { once: true });
             });
 
+            listNode
+                .querySelectorAll("[data-bfc-detail-cover-img]")
+                .forEach((img) => {
+                    const wrap = img.closest("[data-bfc-detail-cover]");
+                    if (!wrap) return;
+                    const settle = () => {
+                        if (img.naturalWidth >= COVER_MIN_WIDTH) {
+                            wrap.classList.add("bfc_detail_cover--loaded");
+                            wrap.classList.remove("bfc_detail_cover--failed");
+                        } else {
+                            wrap.classList.add("bfc_detail_cover--failed");
+                            wrap.classList.remove("bfc_detail_cover--loaded");
+                        }
+                    };
+                    if (img.complete) {
+                        settle();
+                        return;
+                    }
+                    img.addEventListener("load", settle, { once: true });
+                    img.addEventListener(
+                        "error",
+                        () => {
+                            wrap.classList.add("bfc_detail_cover--failed");
+                        },
+                        { once: true },
+                    );
+                });
+
+            applyShareAvailability();
             bindExportInteractions();
+            updateExpandToggleFromDom();
         }
+
+        function applyShareAvailability() {
+            const canShare =
+                typeof navigator !== "undefined" &&
+                typeof navigator.share === "function";
+            if (!canShare) return;
+            listNode
+                .querySelectorAll("[data-bfc-share]")
+                .forEach((btn) => {
+                    btn.hidden = false;
+                });
+        }
+
+        function findBookById(id) {
+            return books.find((book) => book.id === id);
+        }
+
+        listNode.addEventListener("click", async (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            if (!target) return;
+            const shareBtn = target.closest("[data-bfc-share]");
+            const emailBtn = target.closest("[data-bfc-email]");
+            const copyBtn = target.closest("[data-bfc-copy]");
+
+            if (emailBtn) {
+                event.preventDefault();
+                const id = emailBtn.dataset.bfcEmail || "";
+                const book = findBookById(id);
+                if (!book) return;
+                const subject = encodeURIComponent(book.title || "");
+                const body = encodeURIComponent(
+                    generateBookText(book, { includeTitle: false }),
+                );
+                window.location.href = `mailto:?subject=${subject}&body=${body}`;
+                return;
+            }
+
+            if (shareBtn) {
+                event.preventDefault();
+                const id = shareBtn.dataset.bfcShare || "";
+                const book = findBookById(id);
+                if (!book || typeof navigator.share !== "function") return;
+                if (shareBtn.disabled) return;
+                shareBtn.disabled = true;
+                try {
+                    await navigator.share({
+                        title: book.title,
+                        text: generateBookText(book, { includeTitle: false }),
+                    });
+                } catch (err) {
+                    if (!err || err.name !== "AbortError") {
+                        console.warn("share failed", err);
+                    }
+                } finally {
+                    shareBtn.disabled = false;
+                }
+                return;
+            }
+
+            if (copyBtn) {
+                event.preventDefault();
+                const id = copyBtn.dataset.bfcCopy || "";
+                const book = findBookById(id);
+                if (!book) return;
+                const labelNode = copyBtn.querySelector("[data-bfc-copy-label]");
+                try {
+                    await navigator.clipboard.writeText(generateBookText(book));
+                    if (labelNode) {
+                        const prev = labelNode.textContent;
+                        labelNode.textContent = "Copied!";
+                        copyBtn.classList.add("bfc_action_btn--success");
+                        setTimeout(() => {
+                            labelNode.textContent = prev || "Copy book info";
+                            copyBtn.classList.remove("bfc_action_btn--success");
+                        }, 1200);
+                    }
+                } catch (err) {
+                    console.warn("copy failed", err);
+                    if (labelNode) labelNode.textContent = "Copy failed";
+                }
+            }
+        });
 
         searchInput.addEventListener("input", (event) => {
             query = event.target.value.trim().toLowerCase();
@@ -842,6 +1198,67 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         sortDirectionInput?.addEventListener("click", () => {
             sortDirection = sortDirection === "asc" ? "desc" : "asc";
             syncSortDirectionControl();
+            render();
+        });
+
+        languageInput?.addEventListener("change", (event) => {
+            languageFilter = event.target.value || "all";
+            render();
+        });
+
+        function setExpandToggleState(allOpen) {
+            if (!expandToggleBtn) return;
+            const label = allOpen ? "Collapse all" : "Expand all";
+            expandToggleBtn.setAttribute("aria-label", label);
+            expandToggleBtn.setAttribute("title", label);
+            if (expandLabelNode) expandLabelNode.textContent = label;
+        }
+
+        function updateExpandToggleFromDom() {
+            const items = listNode.querySelectorAll("details.bfc_item");
+            if (!items.length) {
+                setExpandToggleState(false);
+                return;
+            }
+            const allOpen = Array.from(items).every((d) => d.open);
+            setExpandToggleState(allOpen);
+        }
+
+        expandToggleBtn?.addEventListener("click", () => {
+            const items = listNode.querySelectorAll("details.bfc_item");
+            if (!items.length) return;
+            const allOpen = Array.from(items).every((d) => d.open);
+            const shouldOpen = !allOpen;
+            items.forEach((d) => {
+                d.open = shouldOpen;
+            });
+            setExpandToggleState(shouldOpen);
+        });
+
+        listNode.addEventListener(
+            "toggle",
+            () => updateExpandToggleFromDom(),
+            true,
+        );
+
+        viewSwitchNode?.addEventListener("click", (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            const btn = target?.closest("[data-bfc-view]");
+            if (!btn) return;
+            const next = btn.dataset.bfcView === "list" ? "list" : "card";
+            if (next === viewMode) return;
+            viewMode = next;
+            applyViewMode();
+        });
+        applyViewMode();
+
+        statusTabsNode?.addEventListener("click", (event) => {
+            const target = event.target instanceof Element ? event.target : null;
+            const btn = target?.closest("[data-bfc-status-tab]");
+            if (!btn) return;
+            const value = btn.dataset.bfcStatusTab || "all";
+            if (value === statusFilter) return;
+            statusFilter = value;
             render();
         });
 
@@ -1439,6 +1856,184 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         color: var(--text-dim);
     }
 
+    .bfc_filter_row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 12px;
+        margin-block: 8px 4px;
+    }
+    .bfc_status_tabs {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        flex: 1 1 auto;
+        min-width: 0;
+    }
+    .bfc_lang_filter {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        flex: 0 0 auto;
+        margin-left: auto;
+    }
+    .bfc_lang_filter_label {
+        font-size: var(--fs-sm);
+        color: var(--text-dim);
+    }
+    .bfc_lang_filter select {
+        padding: 6px 10px;
+        border: 1px solid var(--border-card);
+        border-radius: var(--radius);
+        background: var(--bg-card);
+        color: var(--text);
+        font: inherit;
+        font-size: var(--fs-sm);
+        min-width: 140px;
+    }
+    .bfc_view_switch {
+        display: inline-flex;
+        align-items: stretch;
+        padding: 2px;
+        border: 1px solid var(--border-card);
+        border-radius: 999px;
+        background: var(--bg-card);
+        gap: 0;
+    }
+    .bfc_view_seg {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 32px;
+        height: 28px;
+        padding: 0;
+        border: 0;
+        border-radius: 999px;
+        background: transparent;
+        color: var(--text-dim, var(--text));
+        cursor: pointer;
+        transition:
+            background 0.15s ease,
+            color 0.15s ease;
+    }
+    .bfc_view_seg:hover {
+        color: var(--accent);
+    }
+    .bfc_view_seg:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+    .bfc_view_seg--active {
+        background: var(--accent);
+        color: var(--bg-card);
+    }
+    .bfc_view_seg--active:hover {
+        color: var(--bg-card);
+    }
+    .bfc_expand_toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 32px;
+        padding: 0 14px;
+        border: 1px solid var(--border-card);
+        border-radius: 999px;
+        background: var(--bg-card);
+        color: var(--text);
+        font: inherit;
+        font-size: var(--fs-sm);
+        cursor: pointer;
+        transition:
+            border-color 0.15s ease,
+            color 0.15s ease;
+    }
+    .bfc_expand_toggle:hover,
+    .bfc_expand_toggle:focus-visible {
+        border-color: var(--accent);
+        color: var(--accent);
+        outline: none;
+    }
+    .bfc_expand_toggle_label {
+        line-height: 1;
+    }
+    .bfc_expand_toggle_icon {
+        flex: 0 0 auto;
+    }
+
+    /* Compact list view: single column, no covers in summary */
+    .bfc_list--compact {
+        grid-template-columns: 1fr !important;
+        grid-auto-rows: auto !important;
+    }
+    .bfc_list--compact .bfc_item {
+        grid-row: span 1 !important;
+    }
+    .bfc_list--compact .bfc_cover_wrap {
+        display: none;
+    }
+    .bfc_list--compact .bfc_summary {
+        padding-block: 8px;
+    }
+
+    /* Cover shown inside expanded detail panel — list mode only */
+    .bfc_detail_cover {
+        display: none;
+    }
+    .bfc_list--compact .bfc_detail_cover {
+        display: block;
+        width: 140px;
+        max-width: 40%;
+        margin-block: 4px 10px;
+        border-radius: var(--radius);
+        overflow: hidden;
+        background: var(--bg-card);
+    }
+    .bfc_detail_cover_img {
+        display: block;
+        width: 100%;
+        height: auto;
+    }
+    .bfc_detail_cover--failed {
+        display: none !important;
+    }
+    .bfc_status_tab {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 6px;
+        padding: 6px 12px;
+        border: 1px solid var(--border-card);
+        border-radius: 999px;
+        background: var(--bg-card);
+        color: var(--text);
+        font: inherit;
+        font-size: var(--fs-sm);
+        cursor: pointer;
+        transition:
+            border-color 0.15s ease,
+            background 0.15s ease,
+            color 0.15s ease;
+    }
+    .bfc_status_tab:hover,
+    .bfc_status_tab:focus-visible {
+        border-color: var(--accent);
+        color: var(--accent);
+        outline: none;
+    }
+    .bfc_status_tab--active {
+        background: var(--accent);
+        border-color: var(--accent);
+        color: var(--bg-card);
+    }
+    .bfc_status_tab_count {
+        font-variant-numeric: tabular-nums;
+        font-size: 1.25em;
+        font-weight: 400;
+        line-height: 1;
+    }
+    .bfc_status_tab--active .bfc_status_tab_count {
+        opacity: 1;
+    }
+
     .bfc_chip {
         font-size: var(--fs-xs);
         color: var(--accent);
@@ -1456,9 +2051,57 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     }
     .bfc_detail p {
         margin: 0;
+        overflow-wrap: anywhere;
+        word-break: break-word;
+        white-space: normal;
     }
     .bfc_detail strong {
         color: var(--text);
+    }
+    .bfc_synopsis {
+        margin-block-start: 4px;
+        line-height: 1.5;
+    }
+    .bfc_actions {
+        display: flex;
+        gap: 12px;
+        margin-block-start: 14px;
+        padding-block-start: 12px;
+        border-block-start: 1px solid var(--border-sub);
+        flex-wrap: wrap;
+    }
+    .bfc_action_btn {
+        flex: 1 1 140px;
+        min-height: 44px;
+        padding: 10px 16px;
+        border: 1px solid var(--accent);
+        border-radius: var(--radius);
+        background: var(--bg-card);
+        color: var(--accent);
+        font: inherit;
+        font-weight: 600;
+        letter-spacing: 0.01em;
+        cursor: pointer;
+        transition:
+            background 0.15s ease,
+            color 0.15s ease,
+            box-shadow 0.15s ease;
+    }
+    .bfc_action_btn:hover,
+    .bfc_action_btn:focus-visible {
+        background: var(--accent);
+        color: var(--bg-card);
+        box-shadow: 0 6px 14px
+            color-mix(in oklch, var(--accent), transparent 80%);
+        outline: none;
+    }
+    .bfc_action_btn[disabled] {
+        opacity: 0.6;
+        cursor: progress;
+    }
+    .bfc_action_btn--success {
+        background: var(--accent);
+        color: var(--bg-card);
     }
 
     hr {

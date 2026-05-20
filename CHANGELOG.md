@@ -1,5 +1,15 @@
 # Changelog
 
+This is the BOOK BAT changelog. For the BAOBAB Astro display component, see [`apps/baobab/CHANGELOG.md`](apps/baobab/CHANGELOG.md).
+
+## 0.8.10 — 2026-05-20
+
+- Renamed app from `apps/webapp` → `apps/bookbat`; package `@bookbat/webapp` → `@bookbat/bookbat`. Workspace scripts moved to `pnpm dev:bookbat` / `pnpm build:bookbat` / `pnpm test`. Production build output is now `dist/bookbat`
+- Updated Netlify config to publish from `dist/bookbat`; renamed deploy-ignore script to `scripts/netlify-ignore-bookbat.sh`
+- Workspace data flow: introduced production-seed vs full-dev split. `data/library.json` is the small committed seed (what ships); new `data/library.full.json` is the local-only full dataset (gitignored). The two per-app `library.json` destinations are now gitignored build artifacts. New scripts `pnpm data:sync:full` and `pnpm dev:bookbat:full` use the full set
+- Re-ran preflight gates (`pnpm format`, `pnpm lint`, `pnpm test`, `pnpm build`) with passing results
+- > Netlify dashboard update required: change the BOOK BAT site's base directory to repo root (unchanged) but verify build command is `pnpm build:bookbat` and publish dir is `dist/bookbat`
+
 ## 0.8.9
 
 - Bumped Astro to ^6.3.5 in `@bookbat/astro-site`

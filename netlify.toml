@@ -1,7 +1,7 @@
 [build]
-  command = "pnpm build:webapp"
-  publish = "dist/webapp"
-  ignore = "bash scripts/netlify-ignore-webapp.sh"
+  command = "pnpm build:bookbat"
+  publish = "dist/bookbat"
+  ignore = "bash scripts/netlify-ignore-bookbat.sh"
 
 [[headers]]
   for = "/*"

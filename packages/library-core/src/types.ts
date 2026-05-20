@@ -13,6 +13,7 @@ export interface LibraryBook {
   rating?: number;
   language?: string;
   notes?: string;
+  synopsis?: string;
   tags?: string[];
   dateAdded?: string;
   dateRead?: string;

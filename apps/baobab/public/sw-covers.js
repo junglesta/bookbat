@@ -1,4 +1,4 @@
-const CACHE_NAME = "book-freedom-thumb-cache-v2";
+const CACHE_NAME = "book-freedom-thumb-cache-v3";
 const COVER_HOSTS = new Set([
   "covers.openlibrary.org",
   "books.google.com",

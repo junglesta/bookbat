@@ -4,6 +4,7 @@ A skill is a set of local instructions to follow that is stored in a `SKILL.md` 
 ### Available skills
 - build-deployment: Build scripts, deployment config, and troubleshooting for this Svelte 5 + Vite static client app (file: /Users/admi/Sites/books-freedom/.agents/skills/build-deployment/SKILL.md)
 - css-conventions: CSS naming and style rules for this Svelte/Vite client app (file: /Users/admi/Sites/books-freedom/.agents/skills/css-conventions/SKILL.md)
+- library-data-flow: Rules for editing library book data — `data/library.json` is the only hand-edited file; the two per-app copies are auto-overwritten by `pnpm data:sync`. Read before any paste or build that touches library data. (file: /Users/admi/Sites/books-freedom/.agents/skills/library-data-flow/SKILL.md)
 - package-json: Required package.json fields, scripts, and version bumping rules for this Vite/Svelte app (file: /Users/admi/Sites/books-freedom/.agents/skills/package-json/SKILL.md)
 - preflight: Pre-deploy checklist for this static client app: format, lint, test, build, optional preview, version bump, changelog. Stops before commit. (file: /Users/admi/Sites/books-freedom/.agents/skills/preflight/SKILL.md)
 - pwa: PWA setup for this Vite/Svelte app — manifest, service worker, icons, and index.html tags (file: /Users/admi/Sites/books-freedom/.agents/skills/pwa/SKILL.md)

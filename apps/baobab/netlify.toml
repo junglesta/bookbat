@@ -1,7 +1,7 @@
 [build]
-  command = "pnpm -C ../.. build:astro"
+  command = "pnpm -C ../.. build:baobab"
   publish = "dist"
-  ignore = "bash ../../scripts/netlify-ignore-astro.sh"
+  ignore = "bash ../../scripts/netlify-ignore-baobab.sh"
 
 [[headers]]
   for = "/*"
