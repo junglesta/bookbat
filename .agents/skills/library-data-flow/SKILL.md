@@ -42,7 +42,10 @@ Full-dataset variants exist for local development only:
 
 ## Netlify
 
-Both Netlify configs (`apps/bookbat/netlify.toml`, `apps/baobab/netlify.toml`) run the default `pnpm build:bookbat` / `pnpm build:baobab`, which run `pnpm data:sync` first. The seed (`data/library.json`) is the only thing that gets deployed.
+- **BOOKBAT (bookfreedom)**: git-connected, auto-deploys from `main`. Uses the seed (`data/library.json`, 9 books). Configured by root `netlify.toml`.
+- **BAOBAB (baobab-junglestar-org)**: **not** git-connected on purpose. The live site needs the full local library (`data/library.full.json`, 221+ books) which is gitignored. Deploy manually with `pnpm deploy:baobab` — that script syncs from the full source, builds, and runs `netlify deploy --prod` against the BAOBAB site ID directly.
+
+Never enable BAOBAB git auto-deploy without changing this design; otherwise the live site would silently revert to the 9-book seed every push.
 
 ## What to do when the user pastes new books
 

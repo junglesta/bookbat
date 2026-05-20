@@ -64,7 +64,25 @@ pnpm --filter @bookbat/baobab build
 
 ## Deploy
 
-Netlify auto-deploys from `main` using `apps/baobab/netlify.toml`. The `ignore` script (`scripts/netlify-ignore-baobab.sh`) skips builds when only BOOKBAT files changed.
+`baobab.junglestar.org` is **not** auto-deployed from git, by design. The public repo only contains the small `data/library.json` seed; the live site needs the full library from your local `data/library.full.json`.
+
+Push the full library to production with one command (from the repo root):
+
+```bash
+pnpm deploy:baobab
+```
+
+This:
+1. Cleans `apps/baobab/.astro` + `dist`
+2. Runs `pnpm data:sync:full` (writes the 221 books into the build destinations)
+3. Builds the Astro site
+4. Uploads the resulting `apps/baobab/dist/` to Netlify site `baobab-junglestar-org` via `netlify deploy --prod`
+
+Requires:
+- `netlify` CLI installed and authenticated (`netlify login`)
+- `data/library.full.json` present locally (gitignored)
+
+`apps/baobab/netlify.toml` is kept in case you ever want to enable git-connected builds; it would deploy the 9-book seed.
 
 ## Changelog
 
