@@ -1,7 +1,7 @@
 [![Netlify Status](https://api.netlify.com/api/v1/badges/28542ff1-4d69-4518-abdc-5cb625f0befe/deploy-status)](https://app.netlify.com/projects/bookfreedom/deploys)
 
 <a href="https://bat.junglestar.org">
-  <img src="apps/webapp/src/assets/startscreen.svg" alt="BOOK BAT" width="480">
+  <img src="apps/bookbat/src/assets/startscreen.svg" alt="BOOK BAT" width="480">
 </a>
 
 > no account. no cloud. no tracking. scan it. shelve it. own your data.
