@@ -2,6 +2,7 @@
   "name": "bookbat-workspace",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.2.2",
   "scripts": {
     "certs:generate": "node scripts/generate-dev-certs.mjs",
     "data:sync": "node scripts/sync-library-data.mjs",
