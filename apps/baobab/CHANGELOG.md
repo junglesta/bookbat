@@ -2,6 +2,10 @@
 
 Changelog for the `@bookbat/baobab` Astro display component. The sibling BOOK BAT webapp has its own changelog at the repo root (`/CHANGELOG.md`).
 
+## 0.4.2 — 2026-05-28
+
+- Added Cloudflare Web Analytics beacon (privacy-first, no cookies) to the page head. BOOK BAT is intentionally left untracked
+
 ## 0.4.1 — 2026-05-28
 
 - Component Preview Controls panel now starts **collapsed** (removed `open` from the `<details>`); click the summary to expand the demo switches
