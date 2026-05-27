@@ -2,8 +2,9 @@
 
 This is the BOOK BAT changelog. For the BAOBAB Astro display component, see [`apps/baobab/CHANGELOG.md`](apps/baobab/CHANGELOG.md).
 
-## Unreleased
+## 0.9.1 — 2026-05-28
 
+- Fixed: after scanning a book, tapping **View in Library** (and any tab switch) now lands at the **top** of the page instead of inheriting the previous scroll position — the just-added book (top of the default Recent sort) is immediately visible. Route changes reset scroll like a fresh page load. (#3)
 - **Hosting migration: Netlify → Cloudflare Workers (Static Assets).** Both sites now run as assets-only Workers. BOOK BAT (`bat.junglestar.org`) auto-deploys on push to `main` via Cloudflare Workers Builds; BAOBAB (`baobab.junglestar.org`) deploys manually via `pnpm deploy:baobab` (ships the gitignored full dataset). SPA routing moved from a Netlify `/* → /index.html` redirect to `not_found_handling: single-page-application`; the `Permissions-Policy: camera=(self)` header moved to a `_headers` file per app.
 - Added `apps/bookbat/wrangler.jsonc` and `apps/baobab/wrangler.jsonc` (`custom_domain` routes on the `junglestar.org` zone); added `wrangler` dev dependency and `pnpm deploy:bookbat`.
 - Removed all `netlify.toml` files and the `scripts/netlify-ignore-*.sh` build-gating scripts (BOOK BAT path-gating moves to Workers Builds watch paths).
