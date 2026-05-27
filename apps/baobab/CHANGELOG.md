@@ -2,6 +2,11 @@
 
 Changelog for the `@bookbat/baobab` Astro display component. The sibling BOOK BAT webapp has its own changelog at the repo root (`/CHANGELOG.md`).
 
+## 0.4.1 — 2026-05-28
+
+- Component Preview Controls panel now starts **collapsed** (removed `open` from the `<details>`); click the summary to expand the demo switches
+- Added a favicon (`public/favicon.svg`, the shared junglestar brand mark) and linked it in the page head — previously baobab had none
+
 ## 0.4.0 — 2026-05-20
 
 **Breaking — license change.** Relicensed from **CC BY-SA 4.0** (copyleft, share-alike) to **MIT** (permissive, no copyleft). Footer link updated. Downstream consumers who depended on the share-alike terms must review.
