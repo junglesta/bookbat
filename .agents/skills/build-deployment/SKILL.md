@@ -14,25 +14,29 @@ Lock file: `pnpm-lock.yaml` — never commit `package-lock.json` or `yarn.lock`.
 ## Scripts
 
 ```bash
-pnpm dev              # Vite dev server
+pnpm dev:bookbat      # Vite dev server (seed dataset)
 pnpm format           # Biome format src/
 pnpm lint             # Biome check src/
 pnpm test             # Vitest (run once)
-pnpm build            # Production build to dist/client
-pnpm preview          # Preview production build locally
+pnpm build:bookbat    # Production build to dist/bookbat
+pnpm build:baobab     # Astro build to apps/baobab/dist
 ```
 
 ## Build Output
 
-- Vite root: `src/client`
-- Build output: `dist/client`
-- SPA fallback handled by `netlify.toml` redirect to `/index.html`
+- BOOK BAT (Vite): root `src`, output `dist/bookbat`
+- BAOBAB (Astro): output `apps/baobab/dist`
+- BOOK BAT SPA fallback handled by `not_found_handling: single-page-application` in `apps/bookbat/wrangler.jsonc`
+- The `Permissions-Policy: camera=(self)` header ships via a `_headers` file in each app's public dir
 
-## Deployment
+## Deployment — Cloudflare Workers (Static Assets)
 
-- Netlify config is in `netlify.toml`
-- Build command: `pnpm build`
-- Publish directory: `dist/client`
+Both apps are assets-only Workers (no server script). Config lives in each app's `wrangler.jsonc`; `custom_domain` routes attach the subdomains on the `junglestar.org` zone.
+
+- **BOOK BAT** → `bat.junglestar.org`, auto-deploy on push to `main` via Cloudflare Workers Builds. Manual fallback: `pnpm deploy:bookbat`.
+- **BAOBAB** → `baobab.junglestar.org`, manual `pnpm deploy:baobab` (ships the gitignored full dataset, so it cannot be built in CI).
+
+Both manual paths require `wrangler login` (or `CLOUDFLARE_API_TOKEN`).
 
 ## Pre-Deploy Command Set
 

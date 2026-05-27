@@ -2,6 +2,14 @@
 
 This is the BOOK BAT changelog. For the BAOBAB Astro display component, see [`apps/baobab/CHANGELOG.md`](apps/baobab/CHANGELOG.md).
 
+## Unreleased
+
+- **Hosting migration: Netlify → Cloudflare Workers (Static Assets).** Both sites now run as assets-only Workers. BOOK BAT (`bat.junglestar.org`) auto-deploys on push to `main` via Cloudflare Workers Builds; BAOBAB (`baobab.junglestar.org`) deploys manually via `pnpm deploy:baobab` (ships the gitignored full dataset). SPA routing moved from a Netlify `/* → /index.html` redirect to `not_found_handling: single-page-application`; the `Permissions-Policy: camera=(self)` header moved to a `_headers` file per app.
+- Added `apps/bookbat/wrangler.jsonc` and `apps/baobab/wrangler.jsonc` (`custom_domain` routes on the `junglestar.org` zone); added `wrangler` dev dependency and `pnpm deploy:bookbat`.
+- Removed all `netlify.toml` files and the `scripts/netlify-ignore-*.sh` build-gating scripts (BOOK BAT path-gating moves to Workers Builds watch paths).
+- Fixed a pnpm-11 regression surfaced during the migration: `pnpm clean` is now a built-in command (alias `purge`), which shadowed the `clean` package script. Both call sites now use explicit `pnpm run clean` (`build:baobab:full` in root `package.json`; `dev` in `apps/baobab/package.json`).
+- > Cloudflare dashboard action required: connect the GitHub repo to the BOOK BAT Worker in Workers Builds (build/deploy commands + watch paths in README). Decommission both Netlify sites.
+
 ## 0.9.0 — 2026-05-20
 
 **Breaking — license change.** Project relicensed from **CC BY-SA 4.0** (copyleft, share-alike) to **MIT** (permissive, no copyleft). `LICENSE` rewritten; README license link updated. Downstream consumers who depended on the share-alike terms must review.

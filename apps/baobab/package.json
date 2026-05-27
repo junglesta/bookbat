@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "clean": "rm -rf .astro node_modules/.astro node_modules/.vite dist",
-    "dev": "pnpm clean && astro dev --open",
+    "dev": "pnpm run clean && astro dev --open",
     "build": "astro build",
     "preview": "astro preview"
   },
