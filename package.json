@@ -18,11 +18,15 @@
     "build": "pnpm build:bookbat",
     "build:bookbat": "pnpm data:sync && pnpm --filter @bookbat/bookbat build",
     "build:baobab": "pnpm data:sync && pnpm --filter @bookbat/baobab build",
-    "build:baobab:full": "pnpm --filter @bookbat/baobab clean && pnpm data:sync:full && pnpm --filter @bookbat/baobab build",
+    "build:baobab:full": "pnpm --filter @bookbat/baobab run clean && pnpm data:sync:full && pnpm --filter @bookbat/baobab build",
+    "deploy:bookbat": "pnpm build:bookbat && wrangler deploy -c apps/bookbat/wrangler.jsonc",
     "deploy:baobab": "node scripts/deploy-baobab.mjs",
     "test": "pnpm --filter @bookbat/bookbat test",
     "lint": "pnpm -r lint",
     "format": "pnpm --filter @bookbat/bookbat format",
     "preflight": "pnpm --filter @bookbat/bookbat preflight"
+  },
+  "devDependencies": {
+    "wrangler": "^4.95.0"
   }
 }

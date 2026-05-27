@@ -1,4 +1,4 @@
-[![Netlify Status](https://api.netlify.com/api/v1/badges/28542ff1-4d69-4518-abdc-5cb625f0befe/deploy-status)](https://app.netlify.com/projects/bookfreedom/deploys)
+
 
 <a href="https://bat.junglestar.org">
   <img src="apps/bookbat/src/assets/startscreen.svg" alt="BOOK BAT" width="480">
@@ -71,7 +71,7 @@ When you import a file:
 - `apps/bookbat` → `BOOK BAT` (the Svelte 5 + Vite app — scan, edit, organise, import/export)
 - `apps/baobab` → `BAOBAB` (the Astro display site — public showcase of a curated library)
 - `packages/library-core` → shared types and helpers
-- `data/library.json` → **production seed** (small curated set, committed, what ships to Netlify)
+- `data/library.json` → **production seed** (small curated set, committed, what BOOK BAT ships to production)
 - `data/library.full.json` → **full local dev dataset** (gitignored, your personal library)
 - `data/library.dummy.json` → 3-book minimal set for tests / CI
 
@@ -147,28 +147,32 @@ pnpm build
 pnpm preflight           # full pre-release checklist (BOOK BAT)
 ```
 
-## Netlify
+## Deployment (Cloudflare Workers)
 
-Two Netlify sites are connected to this repo:
+Both sites are static and served from **Cloudflare Workers with Static Assets** (assets-only Workers, no server script). The zone `junglestar.org` is on Cloudflare; each Worker attaches its subdomain via a `custom_domain` route declared in its `wrangler.jsonc`. The `_headers` file in each public dir carries the `Permissions-Policy: camera=(self)` header.
 
-1. `bat.junglestar.org` → `BOOK BAT`
-2. `baobab.junglestar.org` → `BAOBAB`
+### BOOK BAT — auto-deploy via Workers Builds
 
-### BOOK BAT
+`bat.junglestar.org`. Ships the committed seed (`data/library.json`), so it auto-deploys on push to `main` through Cloudflare Workers Builds (git integration). Config: `apps/bookbat/wrangler.jsonc` (`not_found_handling: single-page-application` for SPA routing).
 
-- Base directory: repo root
-- Build command: `pnpm build:bookbat`
-- Publish directory: `dist/bookbat`
-- Config file: `netlify.toml`
-- Ignore/build gating: `scripts/netlify-ignore-bookbat.sh`
+Workers Builds settings:
 
-### BAOBAB
+- Root directory: repo root
+- Build command: `pnpm install --frozen-lockfile && pnpm build:bookbat`
+- Deploy command: `npx wrangler deploy -c apps/bookbat/wrangler.jsonc`
+- Build watch paths: `apps/bookbat/**`, `packages/library-core/**`, `data/**`, `scripts/**`, `package.json`, `pnpm-lock.yaml`, `pnpm-workspace.yaml`
 
-- Base directory: `apps/baobab`
-- Build command: `pnpm -C ../.. build:baobab`
-- Publish directory: `dist`
-- Config file: `apps/baobab/netlify.toml`
-- Ignore/build gating: `scripts/netlify-ignore-baobab.sh`
+Manual fallback: `pnpm deploy:bookbat` (requires `wrangler login`).
+
+### BAOBAB — manual deploy
+
+`baobab.junglestar.org`. Production ships the **full local library** (`data/library.full.json`), which is gitignored, so it can't be reproduced by CI — it is deployed from the maintainer's machine:
+
+```bash
+pnpm deploy:baobab        # builds with the full dataset, then wrangler deploy
+```
+
+Config: `apps/baobab/wrangler.jsonc`. Requires `wrangler login` (or `CLOUDFLARE_API_TOKEN`).
 
 ## Changelogs
 

@@ -1,0 +1,12 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "baobab",
+  "compatibility_date": "2026-05-27",
+  // Assets-only Worker (no `main`, no binding): static Astro MPA.
+  // Default not_found_handling (404) suits a multi-page static site.
+  "assets": {
+    "directory": "./dist"
+  },
+  // Zone junglestar.org is already on Cloudflare; custom_domain auto-creates the DNS record.
+  "routes": [{ "pattern": "baobab.junglestar.org", "custom_domain": true }]
+}

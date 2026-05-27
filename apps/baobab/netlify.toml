@@ -1,9 +1,0 @@
-[build]
-  command = "pnpm -C ../.. build:baobab"
-  publish = "dist"
-  ignore = "bash ../../scripts/netlify-ignore-baobab.sh"
-
-[[headers]]
-  for = "/*"
-  [headers.values]
-    Permissions-Policy = "camera=(self)"

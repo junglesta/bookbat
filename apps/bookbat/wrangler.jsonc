@@ -1,0 +1,13 @@
+{
+  "$schema": "../../node_modules/wrangler/config-schema.json",
+  "name": "bookbat",
+  "compatibility_date": "2026-05-27",
+  // Assets-only Worker (no `main`, no binding): static Svelte SPA.
+  // `single-page-application` replaces the old Netlify /* -> /index.html 200 redirect.
+  "assets": {
+    "directory": "../../dist/bookbat",
+    "not_found_handling": "single-page-application"
+  },
+  // Zone junglestar.org is already on Cloudflare; custom_domain auto-creates the DNS record.
+  "routes": [{ "pattern": "bat.junglestar.org", "custom_domain": true }]
+}
