@@ -6,6 +6,23 @@
 
 > no account. no cloud. no tracking. scan it. shelve it. own your data.
 
+<p>
+  <a href="https://bat.junglestar.org"><img alt="BOOK BAT — live" src="https://img.shields.io/badge/BOOK_BAT-live-success?logo=cloudflare&logoColor=white"></a>
+  <a href="https://baobab.junglestar.org"><img alt="BAOBAB — live" src="https://img.shields.io/badge/BAOBAB-live-success?logo=cloudflare&logoColor=white"></a>
+  <a href="https://workers.cloudflare.com/"><img alt="Deploy: Cloudflare Workers" src="https://img.shields.io/badge/deploy-Cloudflare_Workers-F38020?logo=cloudflare&logoColor=white"></a>
+  <a href="./LICENSE"><img alt="License: MIT" src="https://img.shields.io/badge/license-MIT-green.svg"></a>
+</p>
+<p>
+  <a href="https://svelte.dev"><img alt="Svelte 5" src="https://img.shields.io/badge/Svelte-5-FF3E00?logo=svelte&logoColor=white"></a>
+  <a href="https://astro.build"><img alt="Astro 6" src="https://img.shields.io/badge/Astro-6-BC52EE?logo=astro&logoColor=white"></a>
+  <a href="https://vite.dev"><img alt="Vite 8" src="https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white"></a>
+  <a href="https://www.typescriptlang.org"><img alt="TypeScript 6" src="https://img.shields.io/badge/TypeScript-6-3178C6?logo=typescript&logoColor=white"></a>
+  <a href="https://vitest.dev"><img alt="Vitest 4" src="https://img.shields.io/badge/Vitest-4-6E9F18?logo=vitest&logoColor=white"></a>
+  <a href="https://biomejs.dev"><img alt="Biome" src="https://img.shields.io/badge/Biome-2-60A5FA?logo=biome&logoColor=white"></a>
+  <a href="https://pnpm.io"><img alt="pnpm 11" src="https://img.shields.io/badge/pnpm-11-F69220?logo=pnpm&logoColor=white"></a>
+  <a href="https://web.dev/progressive-web-apps/"><img alt="PWA ready" src="https://img.shields.io/badge/PWA-ready-5A0FC8?logo=pwa&logoColor=white"></a>
+</p>
+
 ## What This Repo Is
 
 A two-headed library project:
@@ -86,6 +103,8 @@ Only the three files in `data/` are ever hand-edited. Each app has a per-app cop
 - Vitest 4, jsdom
 - Biome (format + lint)
 - `html5-qrcode` (camera scanning)
+- pnpm 11 (workspace / monorepo)
+- Cloudflare Workers (static-assets hosting)
 
 ## Run Locally
 
