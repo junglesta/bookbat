@@ -62,7 +62,20 @@ let currentRoute = $state(window.location.hash || "#/scan");
 // Listen for hash changes
 window.addEventListener("hashchange", () => {
   currentRoute = window.location.hash || "#/scan";
+  resetScroll();
 });
+
+// SPA route changes share one scrolling document, so without this the previous
+// page's scroll offset carries over — e.g. tapping "View in Library" after a scan
+// landed mid-list instead of at the freshly added book (top of the default
+// dateAdded-desc sort). Reset to the top on every route change, like a fresh load.
+function resetScroll() {
+  try {
+    window.scrollTo(0, 0);
+  } catch {
+    // Non-browser / test environment without a layout engine.
+  }
+}
 
 export function getRoute() {
   return currentRoute;
