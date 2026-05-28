@@ -2,6 +2,8 @@
   "$schema": "../../node_modules/wrangler/config-schema.json",
   "name": "bookbat",
   "compatibility_date": "2026-05-27",
+  // Deploy: auto via Cloudflare Workers Builds on push to `main` (bookbat-gated build
+  // watch paths); manual fallback: `pnpm deploy:bookbat`.
   // Assets-only Worker (no `main`, no binding): static Svelte SPA.
   // `single-page-application` replaces the old Netlify /* -> /index.html 200 redirect.
   "assets": {
