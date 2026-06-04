@@ -1456,7 +1456,6 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         padding-block: 24px 48px;
         min-height: 100dvh;
         color: var(--text);
-        background: var(--bg-body);
         font-family: var(--font);
     }
 
@@ -1564,9 +1563,10 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         flex-flow: row wrap;
         align-items: center;
         gap: 10px 14px;
-        padding-block: 10px;
+        padding: 10px;
         margin-bottom: var(--gap);
         background: var(--bg-body);
+        border-radius: var(--radius);
     }
     .bfc_sidebar hr {
         display: none;
