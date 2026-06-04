@@ -1015,8 +1015,8 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 </div>
                 <div class="bfc_main">
                   <span class="bfc_title">${title}</span>
+                  <span class="bfc_authors">${authors}</span>
                   <div class="bfc_meta">
-                    <span class="bfc_authors">${authors}</span>
                     <span class="bfc_chip">${chip}</span>
                   </div>
                 </div>
@@ -1822,7 +1822,7 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         display: grid;
         gap: var(--gap);
         grid-template-columns: 1fr;
-        align-items: start;
+        align-items: stretch;
     }
 
     /* ── Card ────────────────────────────────────────────────────── */
@@ -2302,8 +2302,23 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         display: none;
     }
 
-    /* Card (grid) view: an expanded card spans the whole row so its detail
-       is readable instead of crammed in one column. */
+    /* Card (grid) view: even-height cards (rows stretch via the grid) with the
+       cover at top, title/author below, and the meta footer (year · status ·
+       stars) pinned to the bottom edge. */
+    .bfc_list:not(.bfc_list--compact) .bfc_item {
+        display: flex;
+        flex-direction: column;
+    }
+    .bfc_list:not(.bfc_list--compact) .bfc_summary,
+    .bfc_list:not(.bfc_list--compact) .bfc_main {
+        flex: 1 1 auto;
+    }
+    .bfc_list:not(.bfc_list--compact) .bfc_main .bfc_meta {
+        margin-top: auto;
+        padding-top: 6px;
+    }
+
+    /* An expanded card spans the whole row so its detail is readable. */
     .bfc_list:not(.bfc_list--compact) .bfc_item[open] {
         grid-column: 1 / -1;
     }
