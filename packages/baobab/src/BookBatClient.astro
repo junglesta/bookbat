@@ -1106,7 +1106,6 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 const tpl = document.createElement("template");
                 tpl.innerHTML = cardHtml(book).trim();
                 el = tpl.content.firstElementChild;
-                if (el) bindCardCovers(el);
                 cardCache.set(id, el);
             }
             return el;
@@ -1135,6 +1134,10 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             listNode.replaceChildren(
                 ...filtered.map(getCard).filter(Boolean),
             );
+            // Bind cover load handlers now that the cards are in the live DOM
+            // (images don't load inside a <template>). Idempotent on already-
+            // loaded cards: complete imgs just re-settle, no duplicate work.
+            bindCardCovers(listNode);
             if (exportSlotNode) exportSlotNode.innerHTML = exportCardHtml;
             if (exportWrapNode)
                 exportWrapNode.hidden = !Boolean(exportCardHtml);
