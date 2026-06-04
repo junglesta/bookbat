@@ -944,56 +944,35 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             const url = (root.dataset.dataUrl || "").trim();
             if (books.length > 0 || !url) return;
             books = await loadFromUrl(url);
+            cardCache.clear();
             prewarmCoverCache(books);
             render();
         }
 
-        function render() {
-            renderStatusTabs();
-            syncLanguageOptions();
-            const sorter = sorters[sort] || sorters.title;
-            const direction = sortDirection === "asc" ? 1 : -1;
-            const filtered = books
-                .filter(
-                    (book) =>
-                        statusFilter === "all" ||
-                        bookStatus(book) === statusFilter,
-                )
-                .filter(matchesLanguage)
-                .filter((book) => matchesQuery(book, query))
-                .sort((a, b) => sorter(a, b) * direction);
+        // Cards are built once per book and reused on every filter/sort.
+        // (Rebuilding listNode.innerHTML each time recreated every cover <img>,
+        //  causing a reload/flicker — worst with remote covers.)
+        const cardCache = new Map();
 
-            countNode.textContent = `${filtered.length} title${filtered.length === 1 ? "" : "s"}`;
-            emptyNode.hidden = filtered.length > 0;
-            const cardsHtml = filtered
-                .map((book) => {
-                    const title = escapeHtml(book.title || "");
-                    const authors = escapeHtml((book.authors || []).join(", "));
-                    const publisher = book.publisher
-                        ? escapeHtml(book.publisher)
-                        : "";
-                    const year = book.publishYear
-                        ? escapeHtml(book.publishYear)
-                        : "";
-                    const pages = book.pageCount
-                        ? `${escapeHtml(book.pageCount)} pages`
-                        : "";
-                    const notes = book.notes ? escapeHtml(book.notes) : "";
-                    const synopsis = book.synopsis
-                        ? escapeHtml(book.synopsis)
-                        : "";
-                    const tags = Array.isArray(book.tags)
-                        ? book.tags.map((tag) => escapeHtml(tag)).join(", ")
-                        : "";
-                    const language = book.language
-                        ? escapeHtml(book.language)
-                        : "";
-                    const isbn13 = escapeHtml(book.isbn13 || "");
-                    const cover = escapeHtml(coverUrl(book));
-                    const chip = escapeHtml(statusChip(book));
-
-                    const bookId = escapeHtml(book.id || "");
-                    return `
+        function cardHtml(book) {
+            const title = escapeHtml(book.title || "");
+            const authors = escapeHtml((book.authors || []).join(", "));
+            const publisher = book.publisher ? escapeHtml(book.publisher) : "";
+            const year = book.publishYear ? escapeHtml(book.publishYear) : "";
+            const pages = book.pageCount
+                ? `${escapeHtml(book.pageCount)} pages`
+                : "";
+            const notes = book.notes ? escapeHtml(book.notes) : "";
+            const synopsis = book.synopsis ? escapeHtml(book.synopsis) : "";
+            const tags = Array.isArray(book.tags)
+                ? book.tags.map((tag) => escapeHtml(tag)).join(", ")
+                : "";
+            const language = book.language ? escapeHtml(book.language) : "";
+            const isbn13 = escapeHtml(book.isbn13 || "");
+            const cover = escapeHtml(coverUrl(book));
+            const chip = escapeHtml(statusChip(book));
+            const bookId = escapeHtml(book.id || "");
+            return `
             <details class="bfc_item" data-bfc-book-id="${bookId}">
               <summary class="bfc_summary">
                 <div class="bfc_cover_wrap">
@@ -1055,23 +1034,15 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
               </div>
             </details>
           `;
-                })
-                .join("");
-            const exportCardHtml = viewConfig.features.export.enabled
-                ? renderExportCard(viewConfig.features.export.options)
-                : "";
-            listNode.innerHTML = cardsHtml;
-            if (exportSlotNode) exportSlotNode.innerHTML = exportCardHtml;
-            if (exportWrapNode)
-                exportWrapNode.hidden = !Boolean(exportCardHtml);
+        }
 
-            listNode.querySelectorAll("[data-bfc-cover]").forEach((img) => {
+        function bindCardCovers(scope) {
+            scope.querySelectorAll("[data-bfc-cover]").forEach((img) => {
                 const coverWrap = img.closest(".bfc_cover_wrap");
                 if (!coverWrap) return;
                 const coverPlaceholder = coverWrap.querySelector(
                     "[data-bfc-cover-placeholder]",
                 );
-
                 const markLoaded = () => {
                     coverWrap.classList.add("bfc_cover_loaded");
                     coverWrap.classList.remove("bfc_cover_failed");
@@ -1080,7 +1051,6 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                         "bfc_cover_placeholder_hidden",
                     );
                 };
-
                 const markFailed = () => {
                     coverWrap.classList.add("bfc_cover_failed");
                     img.classList.remove("bfc_cover_img_loaded");
@@ -1088,22 +1058,19 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                         "bfc_cover_placeholder_hidden",
                     );
                 };
-
                 const settle = () => {
                     if (img.naturalWidth >= COVER_MIN_WIDTH) markLoaded();
                     else markFailed();
                 };
-
                 if (img.complete) {
                     settle();
                     return;
                 }
-
                 img.addEventListener("load", settle, { once: true });
                 img.addEventListener("error", markFailed, { once: true });
             });
 
-            listNode
+            scope
                 .querySelectorAll("[data-bfc-detail-cover-img]")
                 .forEach((img) => {
                     const wrap = img.closest("[data-bfc-detail-cover]");
@@ -1130,6 +1097,47 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                         { once: true },
                     );
                 });
+        }
+
+        function getCard(book) {
+            const id = book.id || book.isbn13 || "";
+            let el = cardCache.get(id);
+            if (!el) {
+                const tpl = document.createElement("template");
+                tpl.innerHTML = cardHtml(book).trim();
+                el = tpl.content.firstElementChild;
+                if (el) bindCardCovers(el);
+                cardCache.set(id, el);
+            }
+            return el;
+        }
+
+        function render() {
+            renderStatusTabs();
+            syncLanguageOptions();
+            const sorter = sorters[sort] || sorters.title;
+            const direction = sortDirection === "asc" ? 1 : -1;
+            const filtered = books
+                .filter(
+                    (book) =>
+                        statusFilter === "all" ||
+                        bookStatus(book) === statusFilter,
+                )
+                .filter(matchesLanguage)
+                .filter((book) => matchesQuery(book, query))
+                .sort((a, b) => sorter(a, b) * direction);
+
+            countNode.textContent = `${filtered.length} title${filtered.length === 1 ? "" : "s"}`;
+            emptyNode.hidden = filtered.length > 0;
+            const exportCardHtml = viewConfig.features.export.enabled
+                ? renderExportCard(viewConfig.features.export.options)
+                : "";
+            listNode.replaceChildren(
+                ...filtered.map(getCard).filter(Boolean),
+            );
+            if (exportSlotNode) exportSlotNode.innerHTML = exportCardHtml;
+            if (exportWrapNode)
+                exportWrapNode.hidden = !Boolean(exportCardHtml);
 
             applyShareAvailability();
             bindExportInteractions();
