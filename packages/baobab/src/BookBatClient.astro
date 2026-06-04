@@ -1564,6 +1564,11 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         vertical-align: baseline;
     }
 
+    /* Extra gap before the second brand block (BOOK BAT) to set it apart. */
+    .bfc_footer_brand_row ~ .bfc_footer_brand_row {
+        margin-block-start: 22px;
+    }
+
     /* ── Controls ────────────────────────────────────────────────── */
     /* ── Controls: a sticky top bar, all on one line ─────────────── */
     .bfc_sidebar {

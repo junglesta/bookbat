@@ -3,6 +3,9 @@ import { parseLibraryPayload } from "@bookbat/library-core";
 import BookBatClient from "@bookbat/baobab/BookBatClient.astro";
 import { defaultBookBatClientConfig } from "@bookbat/baobab";
 import library from "../data/library.json";
+// The demo (unlike the decoupled component) may read the sibling editor app's
+// version to show it in the footer next to BOOK BAT.
+import { version as bookbatVersion } from "../../../bookbat/package.json";
 
 const books = parseLibraryPayload(library);
 const bookBatClientConfig = {
@@ -67,6 +70,28 @@ const encodedPreviewDefaults = encodeURIComponent(
                 margin-top: 10px;
                 font-size: 12px;
                 color: #4a544a;
+            }
+        </style>
+
+        <!-- Demo-only "light on lime" theme: transparent cards + a sticky bar
+             that blends into the lime page, both with dark borders, and dark
+             text where it sits directly on the lime background. -->
+        <style is:global>
+            .bfc_item {
+                background: none !important;
+                border: 1px solid rgba(0, 0, 0, 0.45) !important;
+            }
+            .bfc_sidebar {
+                /* Match the lime page so it reads bg-less but stays opaque
+                   while sticky (content scrolling under it stays hidden). */
+                background: #ccff00 !important;
+                border: 1px solid rgba(0, 0, 0, 0.45) !important;
+            }
+            .bfc_header h1,
+            .bfc_title,
+            .bfc_authors,
+            .bfc_chip {
+                color: #111 !important;
             }
         </style>
     </head>
@@ -171,7 +196,11 @@ const encodedPreviewDefaults = encodeURIComponent(
                 </p>
             </form>
         </details>
-        <BookBatClient books={books} config={bookBatClientConfig} />
+        <BookBatClient
+            books={books}
+            config={bookBatClientConfig}
+            bookbatVersion={bookbatVersion}
+        />
         <script>
             const previewForm = document.querySelector("[data-bfc-preview]");
             const clientRoot = document.querySelector("[data-bfc]");
