@@ -131,7 +131,11 @@ const encodedPreviewDefaults = encodeURIComponent(
                 background: #fff !important;
                 color: #000 !important;
             }
-            /* Footer blocks: all black text, darker divider. */
+            /* Footer: drop the hardcoded black box (it's not a token); black
+               text + darker divider on the lime page. */
+            .bfc_footer {
+                background: none !important;
+            }
             .bfc_footer,
             .bfc_footer * {
                 color: #000 !important;
