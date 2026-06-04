@@ -1474,65 +1474,8 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         padding-block: var(--padding);
         padding-inline: 0;
     }
-    @media (min-width: 1100px) {
-        .bfc_body {
-            display: grid;
-            grid-template-columns: minmax(0, 40fr) minmax(0, 60fr);
-            column-gap: 24px;
-            align-items: start;
-        }
-        .bfc_sidebar {
-            position: sticky;
-            top: 16px;
-            align-self: start;
-            max-height: calc(100vh - 32px);
-            overflow-y: auto;
-            padding-inline-end: 8px;
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-        .bfc_sidebar::-webkit-scrollbar {
-            width: 6px;
-        }
-        .bfc_sidebar::-webkit-scrollbar-thumb {
-            background: var(--border-card);
-            border-radius: 3px;
-        }
-        .bfc_main {
-            min-width: 0;
-        }
-
-        /* Sidebar: stack every control on its own line */
-        .bfc_sidebar .bfc_controls {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-        .bfc_sidebar .bfc_filter_row {
-            display: flex;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 12px;
-            margin-block: 0;
-        }
-        .bfc_sidebar .bfc_status_tabs {
-            flex: 0 0 auto;
-        }
-        .bfc_sidebar .bfc_lang_filter {
-            margin-left: 0;
-            flex-direction: column;
-            align-items: stretch;
-            gap: 6px;
-        }
-        .bfc_sidebar .bfc_lang_filter select {
-            min-block-size: 46px;
-            width: 100%;
-        }
-        .bfc_sidebar .bfc_view_switch,
-        .bfc_sidebar .bfc_expand_toggle {
-            align-self: flex-start;
-        }
+    .bfc_main {
+        min-width: 0;
     }
 
     /* ── Header ──────────────────────────────────────────────────── */
@@ -1612,11 +1555,41 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     }
 
     /* ── Controls ────────────────────────────────────────────────── */
+    /* ── Controls: a sticky top bar, all on one line ─────────────── */
+    .bfc_sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
+        gap: 10px 14px;
+        padding-block: 10px;
+        margin-bottom: var(--gap);
+        background: var(--bg-body);
+    }
+    .bfc_sidebar hr {
+        display: none;
+    }
     .bfc_controls {
-        margin-block-start: 18px;
-        display: grid;
+        margin: 0;
+        display: flex;
+        flex-flow: row wrap;
+        align-items: center;
         gap: 10px;
-        grid-template-columns: 1fr;
+    }
+    .bfc_control {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    /* Hide the per-control text labels ("Search", "Sort") in the bar — the
+       icons / current value carry the meaning. */
+    .bfc_control > span {
+        display: none;
+    }
+    .bfc_sort_row {
+        width: clamp(150px, 22vw, 220px);
     }
 
     .bfc_control {
@@ -1949,7 +1922,9 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
 
     .bfc_title {
         font-size: var(--fs-xl);
-        font-weight: 600;
+        /* Adopt the host's medium weight token if present (e.g. junglestar
+           --weight_med), else a non-fat default. */
+        font-weight: var(--weight_med, 400);
         color: hsla(0, 0%, 100%, 0.7);
         overflow: hidden;
         display: -webkit-box;
