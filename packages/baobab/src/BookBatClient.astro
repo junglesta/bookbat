@@ -263,6 +263,12 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
 </div>
 
 <script is:inline>
+// Wrapped in an IIFE so the top-level declarations stay function-scoped.
+// Embedding hosts with view transitions (Astro ClientRouter) re-execute
+// inline scripts on navigation; unscoped `const`s would throw
+// "Identifier already declared" on the second run, breaking the host's
+// script loop. The IIFE also lets the grid re-mount after a VT swap.
+(() => {
     const statusLabel = {
         "to-read": "To Read",
         reading: "Reading",
@@ -1379,6 +1385,7 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     }
 
     document.querySelectorAll("[data-bfc]").forEach((root) => mount(root));
+})();
 </script>
 
 <style
