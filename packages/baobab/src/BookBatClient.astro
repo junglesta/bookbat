@@ -1276,6 +1276,14 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             true,
         );
 
+        // Synopsis accordion: click a clamped synopsis to expand the full text.
+        listNode.addEventListener("click", (event) => {
+            const target =
+                event.target instanceof Element ? event.target : null;
+            const syn = target?.closest(".bfc_synopsis");
+            if (syn) syn.classList.toggle("is-open");
+        });
+
         viewSwitchNode?.addEventListener("click", (event) => {
             const target = event.target instanceof Element ? event.target : null;
             const btn = target?.closest("[data-bfc-view]");
@@ -1411,7 +1419,7 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
 
     /* ── Design tokens ───────────────────────────────────────────── */
     .bfc {
-        --accent: #d4ff2a;
+        --accent: oklch(0.88 0.02 75.4); /* dirty white (was lime #d4ff2a) */
         --text: #f6f8f4;
         --text-muted: #bbc4b3;
         --text-dim: #c4ccc0;
@@ -1423,11 +1431,12 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         --bg-input: oklch(from var(--black) calc(l + 0.04) c h);
         --bg-cover: oklch(from var(--black) calc(l + 0.16) c h);
         --border-sub: oklch(from var(--black) calc(l + 0.12) c h);
-        --border-card: oklch(from var(--black) calc(l + 0.17) c h);
-        --border-input: oklch(from var(--black) calc(l + 0.24) c h);
+        /* Subtle translucent-white borders on cards / controls. */
+        --border-card: rgba(255, 255, 255, 0.25);
+        --border-input: rgba(255, 255, 255, 0.25);
         --border-link: oklch(from var(--black) calc(l + 0.32) c h);
         --cover-h: clamp(140px, 18vw, 200px);
-        --radius: 8px;
+        --radius: clamp(7px, 0.5rem, 1.25rem);
         --gap: 16px;
         --padding: 16px; /* base padding unit — all others derived via calc() */
         --font:
@@ -1447,6 +1456,7 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         padding-block: 24px 48px;
         min-height: 100dvh;
         color: var(--text);
+        background: var(--bg-body);
         font-family: var(--font);
     }
 
@@ -1460,14 +1470,9 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     }
 
     .bfc_body {
-        background: radial-gradient(
-            circle at top right,
-            #243410 0%,
-            var(--bg-card) 36%,
-            var(--bg-body) 100%
-        );
-        padding: var(--padding);
-        border-radius: var(--radius);
+        background: none;
+        padding-block: var(--padding);
+        padding-inline: 0;
     }
     @media (min-width: 1100px) {
         .bfc_body {
@@ -1657,6 +1662,14 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     .bfc_control select option {
         font-size: var(--fs-md);
         line-height: 1.35;
+    }
+    /* Render the native dropdown popup dark (instead of a light mis-placed one). */
+    .bfc_control select {
+        color-scheme: dark;
+    }
+    .bfc_control select option {
+        background: var(--bg-input);
+        color: var(--text);
     }
 
     .bfc_export_wrap {
@@ -1995,44 +2008,55 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         font-size: var(--fs-sm);
         min-width: 140px;
     }
+    /* Sliding toggle: grid icon left, list icon right, knob slides under the
+       active one (CSS :has — the JS just toggles .bfc_view_seg--active). */
     .bfc_view_switch {
-        display: inline-flex;
-        align-items: stretch;
-        padding: 2px;
+        position: relative;
+        display: inline-grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0;
+        padding: 3px;
         border: 1px solid var(--border-card);
         border-radius: 999px;
-        background: var(--bg-card);
-        gap: 0;
+        background: var(--bg-input);
+    }
+    .bfc_view_switch::before {
+        content: "";
+        position: absolute;
+        inset: 3px;
+        width: calc(50% - 3px);
+        border-radius: 999px;
+        background: var(--accent);
+        transition: transform 0.22s ease;
+        z-index: 0;
+    }
+    .bfc_view_switch:has(
+            [data-bfc-view="list"].bfc_view_seg--active
+        )::before {
+        transform: translateX(100%);
     }
     .bfc_view_seg {
+        position: relative;
+        z-index: 1;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 32px;
-        height: 28px;
-        padding: 0;
+        height: 30px;
+        padding-inline: 16px;
         border: 0;
-        border-radius: 999px;
         background: transparent;
-        color: var(--text-dim, var(--text));
+        color: var(--text-muted);
         cursor: pointer;
-        transition:
-            background 0.15s ease,
-            color 0.15s ease;
-    }
-    .bfc_view_seg:hover {
-        color: var(--accent);
+        transition: color 0.22s ease;
     }
     .bfc_view_seg:focus-visible {
         outline: 2px solid var(--accent);
         outline-offset: 2px;
     }
-    .bfc_view_seg--active {
-        background: var(--accent);
-        color: var(--bg-card);
-    }
+    .bfc_view_seg--active,
     .bfc_view_seg--active:hover {
-        color: var(--bg-card);
+        background: transparent;
+        color: var(--bg-body);
     }
     .bfc_expand_toggle {
         display: inline-flex;
@@ -2309,5 +2333,77 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         .bfc_item:not(.bfc_item--export):nth-child(6n + 1) {
             grid-row: span 2;
         }
+    }
+
+    /* ── Refinements ─────────────────────────────────────────────── */
+
+    /* Outer list column sits flush within the panel. */
+    .bfc_body > .bfc_main {
+        padding-inline: 0;
+    }
+
+    /* Drop the Expand-all icon (label only) and the language filter. */
+    .bfc_expand_toggle_icon,
+    .bfc_lang_filter {
+        display: none;
+    }
+
+    /* Card (grid) view: an expanded card spans the whole row so its detail
+       is readable instead of crammed in one column. */
+    .bfc_list:not(.bfc_list--compact) .bfc_item[open] {
+        grid-column: 1 / -1;
+    }
+
+    /* Synopsis: clamp to a short teaser (the … appears automatically); click
+       to expand (toggled by the mount script via .is-open). */
+    .bfc_synopsis p {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 4;
+        overflow: hidden;
+        cursor: pointer;
+    }
+    .bfc_synopsis.is-open p {
+        -webkit-line-clamp: unset;
+        display: block;
+    }
+
+    /* Search: a collapsed magnifier button that expands to the right on focus
+       (and stays open while it holds a query). */
+    .bfc_control--search {
+        display: inline-flex;
+    }
+    .bfc_control--search > span {
+        display: none;
+    }
+    .bfc_control--search input {
+        width: 46px;
+        padding-inline: 0;
+        color: transparent;
+        cursor: pointer;
+        appearance: none;
+        -webkit-appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23c9c3b4' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: 20px;
+        transition:
+            width 0.25s ease,
+            padding 0.25s ease;
+    }
+    .bfc_control--search input::placeholder {
+        color: transparent;
+    }
+    .bfc_control--search:focus-within input,
+    .bfc_control--search:has(input:not(:placeholder-shown)) input {
+        width: min(100%, 16rem);
+        padding-inline: 40px calc(var(--padding) - 4px);
+        color: var(--text);
+        cursor: text;
+        background-position: 12px center;
+    }
+    .bfc_control--search:focus-within input::placeholder,
+    .bfc_control--search:has(input:not(:placeholder-shown)) input::placeholder {
+        color: var(--text-muted);
     }
 </style>
