@@ -87,11 +87,19 @@ const encodedPreviewDefaults = encodeURIComponent(
                 background: #ccff00 !important;
                 border: 1px solid rgba(0, 0, 0, 0.45) !important;
             }
+            /* All card text + the BAOBAB heading: full black on the lime page
+               (no grey labels, no white values). Header control pills keep
+               their own light-on-dark text and are intentionally excluded. */
             .bfc_header h1,
-            .bfc_title,
-            .bfc_authors,
-            .bfc_chip {
-                color: #111 !important;
+            .bfc_item,
+            .bfc_item * {
+                color: #000 !important;
+            }
+            /* Action buttons: light outline instead of a heavy filled block. */
+            .bfc_action_btn {
+                background: none !important;
+                border: 1px solid rgba(0, 0, 0, 0.5) !important;
+                color: #000 !important;
             }
         </style>
     </head>
