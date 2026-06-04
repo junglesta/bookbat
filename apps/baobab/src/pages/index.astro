@@ -1,7 +1,7 @@
 ---
 import { parseLibraryPayload } from "@bookbat/library-core";
-import BookBatClient from "../components/Astro/BookBatClient.astro";
-import { defaultBookBatClientConfig } from "../config/bookbat-client.config";
+import BookBatClient from "@bookbat/baobab/BookBatClient.astro";
+import { defaultBookBatClientConfig } from "@bookbat/baobab";
 import library from "../data/library.json";
 
 const books = parseLibraryPayload(library);
@@ -160,7 +160,7 @@ const encodedPreviewDefaults = encodeURIComponent(
                     Think of this panel like light switches for demo only. The
                     real default settings live in
                     <code
-                        >apps/baobab/src/config/bookbat-client.config.ts</code
+                        >packages/baobab/src/bookbat-client.config.ts</code
                     >. This page sends those settings to
                     <code>&lt;BookBatClient /&gt;</code>. In another Astro site,
                     start from

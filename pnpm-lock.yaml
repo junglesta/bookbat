@@ -14,6 +14,9 @@ importers:
 
   apps/baobab:
     dependencies:
+      '@bookbat/baobab':
+        specifier: workspace:*
+        version: link:../../packages/baobab
       '@bookbat/library-core':
         specifier: workspace:*
         version: link:../../packages/library-core
@@ -54,6 +57,15 @@ importers:
       vitest:
         specifier: ^4.1.7
         version: 4.1.7(jsdom@29.1.1)(vite@8.0.14(esbuild@0.27.7))
+
+  packages/baobab:
+    dependencies:
+      '@bookbat/library-core':
+        specifier: workspace:*
+        version: link:../library-core
+      astro:
+        specifier: ^6.3.7
+        version: 6.3.7(lightningcss@1.32.0)(rollup@4.60.4)
 
   packages/library-core: {}
 

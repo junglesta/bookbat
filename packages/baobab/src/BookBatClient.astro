@@ -3,15 +3,20 @@ import type { LibraryBook } from "@bookbat/library-core";
 import {
     resolveBookBatClientConfig,
     type BookBatClientConfigOverride,
-} from "../../config/bookbat-client.config";
-import { version as baobabVersion } from "../../../package.json";
-import { version as bookbatVersion } from "../../../../bookbat/package.json";
+} from "./bookbat-client.config";
+import { version as baobabVersion } from "../package.json";
 
 interface Props {
     books?: LibraryBook[];
     dataUrl?: string;
     heading?: string;
     config?: BookBatClientConfigOverride;
+    /**
+     * Optional version string for the companion BOOK BAT webapp, shown in the
+     * footer. Consumers/the demo can pass it; the package no longer reaches
+     * into a sibling app to read it.
+     */
+    bookbatVersion?: string;
 }
 
 const {
@@ -19,6 +24,7 @@ const {
     dataUrl = "",
     heading = "BAOBAB",
     config = {},
+    bookbatVersion = "",
 } = Astro.props;
 const resolvedConfig = resolveBookBatClientConfig(config);
 const encodedBooks = encodeURIComponent(JSON.stringify(books));
@@ -213,7 +219,13 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 target="_blank"
                 rel="noreferrer noopener">BOOK BAT</a
             >
-            <span class="bfc_footer_brand_version">v{bookbatVersion}</span>
+            {
+                bookbatVersion && (
+                    <span class="bfc_footer_brand_version">
+                        v{bookbatVersion}
+                    </span>
+                )
+            }
         </span>
         <span class="bfc_footer_intro"> BOOKBAT is the webapp. </span>
         <span class="bfc_footer_intro">

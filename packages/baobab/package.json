@@ -1,0 +1,25 @@
+{
+  "name": "@bookbat/baobab",
+  "version": "0.4.2",
+  "description": "BAOBAB — searchable / sortable / filterable book-grid display component for Astro.",
+  "type": "module",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/junglesta/bookbat.git",
+    "directory": "packages/baobab"
+  },
+  "files": [
+    "src"
+  ],
+  "exports": {
+    ".": "./src/index.ts",
+    "./BookBatClient.astro": "./src/BookBatClient.astro"
+  },
+  "dependencies": {
+    "@bookbat/library-core": "workspace:*"
+  },
+  "peerDependencies": {
+    "astro": "^6.3.7"
+  }
+}
