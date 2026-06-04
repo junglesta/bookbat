@@ -73,33 +73,69 @@ const encodedPreviewDefaults = encodeURIComponent(
             }
         </style>
 
-        <!-- Demo-only "light on lime" theme: transparent cards + a sticky bar
-             that blends into the lime page, both with dark borders, and dark
-             text where it sits directly on the lime background. -->
+        <!-- Demo-only "light on lime" theme. Re-point the component's design
+             tokens to a light palette so cards, the bar, inputs, buttons, tabs
+             and the footer all read as outlines + black text on the lime page;
+             then fix the few active states that must stay legible. -->
         <style is:global>
-            .bfc_item {
-                background: none !important;
-                border: 1px solid rgba(0, 0, 0, 0.45) !important;
+            .bfc {
+                --bg-card: transparent;
+                --bg-input: transparent;
+                --bg-cover: rgba(0, 0, 0, 0.08);
+                --border-card: rgba(0, 0, 0, 0.45);
+                --border-input: rgba(0, 0, 0, 0.45);
+                --border-sub: rgba(0, 0, 0, 0.3);
+                --text: #000;
+                --text-muted: #000;
+                --text-dim: #000;
+                --accent: #000;
             }
+            /* Sticky bar blends into the lime page but stays opaque (so cards
+               don't show through while it's pinned). */
             .bfc_sidebar {
-                /* Match the lime page so it reads bg-less but stays opaque
-                   while sticky (content scrolling under it stays hidden). */
                 background: #ccff00 !important;
-                border: 1px solid rgba(0, 0, 0, 0.45) !important;
             }
-            /* All card text + the BAOBAB heading: full black on the lime page
-               (no grey labels, no white values). Header control pills keep
-               their own light-on-dark text and are intentionally excluded. */
+            /* Catch-all: every bit of card text full black (title is a hardcoded
+               white in the component; detail labels/values were grey/white). */
             .bfc_header h1,
             .bfc_item,
             .bfc_item * {
                 color: #000 !important;
             }
-            /* Action buttons: light outline instead of a heavy filled block. */
-            .bfc_action_btn {
+            /* Active tab / view toggle: lime on the black accent fill. */
+            .bfc_status_tab--active,
+            .bfc_view_seg--active {
+                color: #ccff00 !important;
+            }
+            /* Buttons → light outline, not heavy filled blocks. */
+            .bfc_action_btn,
+            .bfc_export_btn {
                 background: none !important;
                 border: 1px solid rgba(0, 0, 0, 0.5) !important;
                 color: #000 !important;
+            }
+            .bfc_item--export .bfc_export_panel {
+                background: none !important;
+            }
+            /* Black search magnifier (component ships a light-grey one). */
+            .bfc_control--search input {
+                background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='m20 20-3.6-3.6'/%3E%3C/svg%3E") !important;
+            }
+            /* Native <select> popup → light. */
+            .bfc_control select {
+                color-scheme: light !important;
+            }
+            .bfc_control select option {
+                background: #fff !important;
+                color: #000 !important;
+            }
+            /* Footer blocks: all black text, darker divider. */
+            .bfc_footer,
+            .bfc_footer * {
+                color: #000 !important;
+            }
+            .bfc_footer_divider {
+                border-top-color: rgba(0, 0, 0, 0.4) !important;
             }
         </style>
     </head>
