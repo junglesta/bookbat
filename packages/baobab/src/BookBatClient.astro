@@ -303,6 +303,8 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         showHeader: true,
         showFooter: true,
         unstyled: false,
+        sort: "title",
+        sortDirection: "asc",
         features: {
             export: {
                 enabled: true,
@@ -380,6 +382,9 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
                 showFooter:
                     parsed?.showFooter ?? defaultClientConfig.showFooter,
                 unstyled: parsed?.unstyled ?? defaultClientConfig.unstyled,
+                sort: parsed?.sort ?? defaultClientConfig.sort,
+                sortDirection:
+                    parsed?.sortDirection ?? defaultClientConfig.sortDirection,
                 features: {
                     export: {
                         enabled:
@@ -834,11 +839,12 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
             decodeURIComponent(root.dataset.books || "[]"),
         );
         let query = "";
-        let sort = "title";
-        let sortDirection = "asc";
+        let sort = viewConfig.sort || "title";
+        let sortDirection = viewConfig.sortDirection || "asc";
         let statusFilter = "all";
         let languageFilter = "all";
         let viewMode = "list";
+        if (sortInput) sortInput.value = sort;
 
         function applyViewMode() {
             listNode.classList.toggle("bfc_list--compact", viewMode === "list");

@@ -1,9 +1,23 @@
 export type BookBatExportFormatId = "json" | "csv" | "goodreads" | "librarything";
 
+export type BookBatSortKey =
+    | "recent"
+    | "title"
+    | "author"
+    | "publisher"
+    | "year"
+    | "rating";
+
+export type BookBatSortDirection = "asc" | "desc";
+
 export interface BookBatClientConfig {
     showHeader: boolean;
     showFooter: boolean;
     unstyled: boolean;
+    /** Initial sort column. */
+    sort: BookBatSortKey;
+    /** Initial sort direction. */
+    sortDirection: BookBatSortDirection;
     features: {
         export: {
             enabled: boolean;
@@ -19,6 +33,8 @@ export interface BookBatClientConfigOverride {
     showHeader?: boolean;
     showFooter?: boolean;
     unstyled?: boolean;
+    sort?: BookBatSortKey;
+    sortDirection?: BookBatSortDirection;
     features?: {
         export?: {
             enabled?: boolean;
@@ -34,6 +50,8 @@ export const defaultBookBatClientConfig: BookBatClientConfig = {
     showHeader: true,
     showFooter: true,
     unstyled: false,
+    sort: "title",
+    sortDirection: "asc",
     features: {
         export: {
             enabled: true,
@@ -57,6 +75,9 @@ export function resolveBookBatClientConfig(
         showHeader: config.showHeader ?? defaultBookBatClientConfig.showHeader,
         showFooter: config.showFooter ?? defaultBookBatClientConfig.showFooter,
         unstyled: config.unstyled ?? defaultBookBatClientConfig.unstyled,
+        sort: config.sort ?? defaultBookBatClientConfig.sort,
+        sortDirection:
+            config.sortDirection ?? defaultBookBatClientConfig.sortDirection,
         features: {
             export: {
                 enabled:
