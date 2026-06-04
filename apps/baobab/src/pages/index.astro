@@ -79,16 +79,18 @@ const encodedPreviewDefaults = encodeURIComponent(
              then fix the few active states that must stay legible. -->
         <style is:global>
             .bfc {
-                --bg-card: transparent;
-                --bg-input: transparent;
-                --bg-cover: rgba(0, 0, 0, 0.08);
-                --border-card: rgba(0, 0, 0, 0.45);
-                --border-input: rgba(0, 0, 0, 0.45);
-                --border-sub: rgba(0, 0, 0, 0.3);
-                --text: #000;
-                --text-muted: #000;
-                --text-dim: #000;
-                --accent: #000;
+                /* !important so these beat the component's scoped .bfc[cid]
+                   token definitions (higher specificity otherwise). */
+                --bg-card: transparent !important;
+                --bg-input: transparent !important;
+                --bg-cover: rgba(0, 0, 0, 0.08) !important;
+                --border-card: rgba(0, 0, 0, 0.45) !important;
+                --border-input: rgba(0, 0, 0, 0.45) !important;
+                --border-sub: rgba(0, 0, 0, 0.3) !important;
+                --text: #000 !important;
+                --text-muted: #000 !important;
+                --text-dim: #000 !important;
+                --accent: #000 !important;
             }
             /* Sticky bar blends into the lime page but stays opaque (so cards
                don't show through while it's pinned). */
