@@ -468,7 +468,10 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
     }
 
     function coverUrl(book) {
-        if (book.coverUrl && book.coverUrl.startsWith("https://"))
+        // Accept absolute (http/https) OR root-relative ("/...") cover URLs, so
+        // a consumer can point at build-time-cached local covers, not just
+        // remote ones. Backward compatible: existing https URLs still match.
+        if (book.coverUrl && /^(https?:\/\/|\/)/.test(book.coverUrl))
             return book.coverUrl;
         // No `?default=false`: openlibrary then always returns 200, with a tiny
         // transparent placeholder when the cover is missing. We detect that case
