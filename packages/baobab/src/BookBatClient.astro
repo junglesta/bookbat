@@ -1647,13 +1647,11 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
 
     .bfc_export_wrap {
         margin-top: var(--padding);
-        padding: var(--padding);
-        border-radius: var(--radius);
-        background-color: var(--bg-body);
     }
 
     .bfc_export_slot {
         margin: 0;
+        background: none;
     }
 
     .bfc_export_slot:empty {
@@ -1676,7 +1674,7 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         margin: 0;
         width: 100%;
         border: 0;
-        background: transparent;
+        background: var(--bg-body);
         display: grid;
         gap: 12px;
     }
