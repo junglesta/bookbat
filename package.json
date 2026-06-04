@@ -27,6 +27,7 @@
     "preflight": "pnpm --filter @bookbat/bookbat preflight"
   },
   "devDependencies": {
+    "@changesets/cli": "^2.31.0",
     "wrangler": "^4.95.0"
   }
 }
