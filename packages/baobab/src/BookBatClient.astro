@@ -2306,32 +2306,11 @@ const encodedConfig = encodeURIComponent(JSON.stringify(resolvedConfig));
         .bfc_controls {
             grid-template-columns: 2fr 1fr;
         }
+        /* Size cards by a comfortable min width (~350px) rather than a fixed
+           column count, so they don't cram on wide screens and adapt when the
+           sidebar splits in. Columns settle in the ~350–450px range. */
         .bfc_list {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    @media (min-width: 1200px) {
-        .bfc_list {
-            grid-template-columns: repeat(4, 1fr);
-            grid-auto-flow: row dense;
-            grid-auto-rows: minmax(160px, auto);
-        }
-
-        /* Start bento behavior only when there is enough screen real estate. */
-        .bfc_item:not(.bfc_item--export):nth-child(5n + 1) {
-            grid-row: span 2;
-        }
-    }
-
-    @media (min-width: 1800px) {
-        .bfc_list {
-            grid-template-columns: repeat(5, 1fr);
-            grid-auto-rows: minmax(180px, auto);
-        }
-
-        .bfc_item:not(.bfc_item--export):nth-child(6n + 1) {
-            grid-row: span 2;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
         }
     }
 
