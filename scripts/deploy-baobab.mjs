@@ -1,15 +1,13 @@
 #!/usr/bin/env node
 /**
- * deploy:baobab — manual production deploy of the BAOBAB Astro site to
- * baobab.junglestar.org (Cloudflare Worker, static assets) with the FULL
- * local library (data/library.full.json).
+ * deploy:baobab — manual production deploy of the BAOBAB demo site to
+ * baobab.junglestar.org (Cloudflare Worker, static assets).
  *
- * Why manual instead of git-integration: production ships data/library.full.json,
- * which is gitignored / local-only, so a CI build cannot reproduce it. This runs
- * from the maintainer's machine.
+ * Ships the committed curated seed (data/library.json) — a small showcase set
+ * (English, has a cover, 5-star), not the full local library.
  *
  * What this does:
- *   1. Cleans + builds BAOBAB with the full dataset
+ *   1. Cleans + builds BAOBAB from the seed (data:sync -> data/library.json)
  *   2. Runs `wrangler deploy` against apps/baobab/wrangler.jsonc
  *
  * Requires `wrangler login` (or CLOUDFLARE_API_TOKEN) beforehand.
@@ -28,8 +26,8 @@ function run(cmd, args, opts = {}) {
   });
 }
 
-console.log('▸ build BAOBAB with full library');
-await run('pnpm', ['build:baobab:full'], { cwd: REPO_ROOT });
+console.log('▸ build BAOBAB from the curated seed (data/library.json)');
+await run('pnpm', ['build:baobab'], { cwd: REPO_ROOT });
 
 console.log('▸ wrangler deploy');
 await run('wrangler', ['deploy', '-c', BAOBAB_CONFIG], { cwd: REPO_ROOT });
