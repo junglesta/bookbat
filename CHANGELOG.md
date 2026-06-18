@@ -8,6 +8,7 @@ This is the BOOK BAT changelog. For the BAOBAB Astro display component, see [`ap
 - The Worker edge-caches successful Open Library responses for 1h — a second layer in front of the 30-day client-side cache (#5), further cutting upstream requests. Cover images (`covers.openlibrary.org`) are `<img>` loads and stay direct.
 - Dev: `vite` now proxies `/api/ol` → `openlibrary.org` so local `pnpm dev` lookups keep working without the Worker.
 - Re-ran preflight gates (`pnpm lint`, `pnpm test`, `pnpm build`) with passing results.
+- > **Ops:** Cloudflare Workers Builds currently deploys *every* branch to production, not just `main` — this release's PR build (#10) shipped 0.9.3 to prod before merge. Production should be pinned to the `main` branch in the Workers Builds dashboard, with PRs using preview deploys (`wrangler versions upload`) instead. Follow-up pending.
 
 ## 0.9.2 — 2026-06-18
 
