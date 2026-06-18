@@ -1,5 +1,11 @@
 import { cleanIsbn, toIsbn13 } from "./isbn";
+import { readIsbnCache, writeIsbnCache } from "./isbn-cache";
 import type { Book } from "./types";
+
+export interface LookupOptions {
+  /** Bypass the local cache and force a fresh network lookup (e.g. manual refresh). */
+  forceRefresh?: boolean;
+}
 
 const LOOKUP_TIMEOUT_MS = 8000;
 
@@ -48,11 +54,25 @@ async function fetchJson(url: string): Promise<JsonRecord | null> {
   }
 }
 
-export async function lookupIsbn(isbn: string): Promise<Book | null> {
+export async function lookupIsbn(isbn: string, options: LookupOptions = {}): Promise<Book | null> {
   const cleaned = cleanIsbn(isbn);
   const normalizedIsbn13 = toIsbn13(cleaned);
   if (!normalizedIsbn13) return null;
 
+  if (!options.forceRefresh) {
+    const cached = readIsbnCache(normalizedIsbn13);
+    // A fresh read is re-parsed from storage, so the returned object is never
+    // shared with the cache — callers may safely mutate it.
+    if (cached) return cached.book;
+  }
+
+  const result = await fetchFromProviders(cleaned, normalizedIsbn13);
+  // Cache both hits and misses (negative results get a shorter TTL).
+  writeIsbnCache(normalizedIsbn13, result);
+  return result;
+}
+
+async function fetchFromProviders(cleaned: string, normalizedIsbn13: string): Promise<Book | null> {
   // Try Open Library first
   const olResult = await tryOpenLibrary(cleaned, normalizedIsbn13);
   if (olResult) {

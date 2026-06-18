@@ -1298,8 +1298,47 @@ h1 .count {
 
 .detail_topbar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   margin-bottom: 8px;
+}
+
+.detail_refresh {
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border);
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-secondary);
+}
+
+.detail_refresh:hover:not(:disabled) {
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.detail_refresh:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.detail_refresh svg {
+  width: 20px;
+  height: 20px;
+}
+
+.detail_refresh_spin {
+  transform-origin: center;
+  animation: detail_refresh_spin 0.8s linear infinite;
+}
+
+@keyframes detail_refresh_spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .detail_close {

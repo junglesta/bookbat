@@ -29,6 +29,7 @@
   let copiedBookTextTimer: ReturnType<typeof setTimeout> | null = null;
   let backfillingSynopsis = $state(false);
   let synopsisBackfillAttemptedBookId = $state<string | null>(null);
+  let refreshingMeta = $state(false);
   let synopsisExpanded = $state(false);
   let statusOpen = $state(false);
   let removeConfirmOpen = $state(false);
@@ -130,6 +131,45 @@
     }
   }
 
+  async function refreshMetadata() {
+    if (refreshingMeta) return;
+    refreshingMeta = true;
+    try {
+      const fresh = await lookupIsbn(book.isbn13, { forceRefresh: true });
+      if (!fresh) {
+        showToast('No metadata found for this ISBN.');
+        return;
+      }
+      // Only overwrite catalog metadata, and only when the fresh lookup
+      // actually has a value — never blank out existing data with an empty
+      // result. User-owned fields (status, rating, notes, tags, dates) are
+      // left untouched.
+      const updates: Partial<Book> = {};
+      if (fresh.title && fresh.title !== 'Unknown Title') updates.title = fresh.title;
+      if (fresh.authors.length > 0) updates.authors = fresh.authors;
+      if (fresh.isbn10) updates.isbn10 = fresh.isbn10;
+      if (fresh.publisher) updates.publisher = fresh.publisher;
+      if (fresh.publishDate) updates.publishDate = fresh.publishDate;
+      if (fresh.publishYear) updates.publishYear = fresh.publishYear;
+      if (fresh.pageCount) updates.pageCount = fresh.pageCount;
+      if (fresh.language) updates.language = fresh.language;
+      if (fresh.subjects && fresh.subjects.length > 0) updates.subjects = fresh.subjects;
+      if (fresh.synopsis) updates.synopsis = fresh.synopsis;
+      if (fresh.coverUrl) updates.coverUrl = fresh.coverUrl;
+
+      if (Object.keys(updates).length === 0) {
+        showToast('Metadata is already up to date.');
+        return;
+      }
+      book = updateBookInCollection(book.id, updates, { silent: true });
+      showToast('Metadata refreshed.');
+    } catch {
+      showToast('Could not refresh metadata.');
+    } finally {
+      refreshingMeta = false;
+    }
+  }
+
   async function backfillSynopsis(bookId: string, isbn13: string) {
     backfillingSynopsis = true;
     try {
@@ -219,6 +259,27 @@
   <summary class="detail_inline_summary">Book details</summary>
   <div class="detail_panel">
     <div class="detail_topbar">
+      <button
+        class="detail_refresh"
+        onclick={refreshMetadata}
+        disabled={refreshingMeta}
+        aria-label="Refresh metadata"
+        title="Refresh metadata from Open Library / Google Books"
+      >
+        <svg
+          class:detail_refresh_spin={refreshingMeta}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+          <path d="M21 3v6h-6" />
+        </svg>
+      </button>
       <button class="detail_close" onclick={onClose} aria-label="Close">&times;</button>
     </div>
 

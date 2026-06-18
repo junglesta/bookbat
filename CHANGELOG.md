@@ -2,6 +2,12 @@
 
 This is the BOOK BAT changelog. For the BAOBAB Astro display component, see [`apps/baobab/CHANGELOG.md`](apps/baobab/CHANGELOG.md).
 
+## 0.9.2 — 2026-06-18
+
+- Added a local cache for ISBN metadata lookups (`lookupIsbn`), keyed by normalized ISBN-13 and stored in `localStorage`. Repeat lookups within the TTL now return instantly with **zero network calls** to Open Library / Google Books, cutting request volume against Open Library's rate limits. Successful results are cached for 30 days; not-found (negative) results for 24 hours; the cache is bounded at 500 entries with least-recently-fetched eviction and is resilient to disabled/full storage. (#5)
+- Added a **Refresh metadata** button to Book Details that bypasses the cache (`forceRefresh`) and re-fetches catalog fields (title, authors, publisher, year, pages, language, subjects, synopsis, cover) from the providers. Personal fields (status, rating, notes, tags, dates) are preserved, and existing values are never blanked out by a sparse lookup.
+- Re-ran preflight gates (`pnpm lint`, `pnpm test`, `pnpm build`) with passing results.
+
 ## 0.9.1 — 2026-05-28
 
 - Fixed: after scanning a book, tapping **View in Library** (and any tab switch) now lands at the **top** of the page instead of inheriting the previous scroll position — the just-added book (top of the default Recent sort) is immediately visible. Route changes reset scroll like a fresh page load. (#3)
