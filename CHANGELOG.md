@@ -2,6 +2,13 @@
 
 This is the BOOK BAT changelog. For the BAOBAB Astro display component, see [`apps/baobab/CHANGELOG.md`](apps/baobab/CHANGELOG.md).
 
+## 0.9.3 — 2026-06-19
+
+- Open Library API requests now go through a Cloudflare **Worker proxy** (`/api/ol/*`) that attaches an identifying `User-Agent` (`Bookbat/<version> (info@junglestar.org; +https://bat.junglestar.org)`) **server-side**, moving lookups into Open Library's 3 req/s tier. The browser can't do this itself — `User-Agent` is a forbidden header and a custom header fails Open Library's CORS preflight (see #4) — so the request is made in the Worker. BOOK BAT is now a **Worker-with-assets** instead of assets-only; all non-API routes still serve the static SPA via the `ASSETS` binding (`run_worker_first` scoped to `/api/ol/*`). (#4)
+- The Worker edge-caches successful Open Library responses for 1h — a second layer in front of the 30-day client-side cache (#5), further cutting upstream requests. Cover images (`covers.openlibrary.org`) are `<img>` loads and stay direct.
+- Dev: `vite` now proxies `/api/ol` → `openlibrary.org` so local `pnpm dev` lookups keep working without the Worker.
+- Re-ran preflight gates (`pnpm lint`, `pnpm test`, `pnpm build`) with passing results.
+
 ## 0.9.2 — 2026-06-18
 
 - Added a local cache for ISBN metadata lookups (`lookupIsbn`), keyed by normalized ISBN-13 and stored in `localStorage`. Repeat lookups within the TTL now return instantly with **zero network calls** to Open Library / Google Books, cutting request volume against Open Library's rate limits. Successful results are cached for 30 days; not-found (negative) results for 24 hours; the cache is bounded at 500 entries with least-recently-fetched eviction and is resilient to disabled/full storage. (#5)

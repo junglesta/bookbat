@@ -32,5 +32,15 @@ export default defineConfig({
     port: 5173,
     host: true,
     https: getHttpsConfig(),
+    // Dev-only: in production `/api/ol/*` is handled by the Worker (src/worker.ts),
+    // but vite has no Worker, so forward it to Open Library here. Keeps `pnpm dev`
+    // lookups working; the identifying User-Agent only matters in production.
+    proxy: {
+      '/api/ol': {
+        target: 'https://openlibrary.org',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/api\/ol/, ''),
+      },
+    },
   },
 });

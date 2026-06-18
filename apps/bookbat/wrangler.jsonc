@@ -4,11 +4,17 @@
   "compatibility_date": "2026-05-27",
   // Deploy: auto via Cloudflare Workers Builds on push to `main` (bookbat-gated build
   // watch paths); manual fallback: `pnpm deploy:bookbat`.
-  // Assets-only Worker (no `main`, no binding): static Svelte SPA.
-  // `single-page-application` replaces the old Netlify /* -> /index.html 200 redirect.
+  // Worker-with-assets: `src/worker.ts` proxies /api/ol/* to openlibrary.org with a
+  // real User-Agent (browsers can't — forbidden header + CORS preflight; see #4).
+  // Every other path serves the static Svelte SPA via the ASSETS binding.
+  "main": "src/worker.ts",
   "assets": {
     "directory": "../../dist/bookbat",
-    "not_found_handling": "single-page-application"
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    // Only the proxy path runs the Worker; all other routes serve assets (and the
+    // SPA not_found fallback) directly at the edge, unchanged from assets-only.
+    "run_worker_first": ["/api/ol/*"]
   },
   // Zone junglestar.org is already on Cloudflare; custom_domain auto-creates the DNS record.
   "routes": [{ "pattern": "bat.junglestar.org", "custom_domain": true }]

@@ -9,6 +9,13 @@ export interface LookupOptions {
 
 const LOOKUP_TIMEOUT_MS = 8000;
 
+// Open Library calls go through our own Worker proxy (`/api/ol/*`) so they
+// carry an identifying User-Agent server-side and land in OL's 3 req/s tier.
+// The browser can't set that header itself (forbidden header + CORS preflight).
+// See apps/bookbat/src/worker.ts and issue #4. Cover images (covers.openlibrary.org)
+// are <img> loads and stay direct. In dev, vite proxies /api/ol → openlibrary.org.
+const OL_BASE = "/api/ol";
+
 type JsonRecord = Record<string, unknown>;
 
 function asRecord(value: unknown): JsonRecord {
@@ -102,7 +109,7 @@ async function fetchFromProviders(cleaned: string, normalizedIsbn13: string): Pr
 }
 
 async function tryOpenLibrary(isbn: string, normalizedIsbn13: string): Promise<Book | null> {
-  const data = await fetchJson(`https://openlibrary.org/isbn/${isbn}.json`);
+  const data = await fetchJson(`${OL_BASE}/isbn/${isbn}.json`);
   if (!data) return null;
 
   // Resolve author names
@@ -111,7 +118,7 @@ async function tryOpenLibrary(isbn: string, normalizedIsbn13: string): Promise<B
   for (const authorRef of authorRefs) {
     const key = asString(asRecord(authorRef).key);
     if (!key) continue;
-    const authorData = await fetchJson(`https://openlibrary.org${key}.json`);
+    const authorData = await fetchJson(`${OL_BASE}${key}.json`);
     if (authorData) {
       authors.push(asString(authorData.name) || "Unknown Author");
     }
@@ -137,7 +144,7 @@ async function tryOpenLibrary(isbn: string, normalizedIsbn13: string): Promise<B
   const works = Array.isArray(data.works) ? data.works : [];
   const workKey = asString(asRecord(works[0]).key);
   if (workKey) {
-    const worksData = await fetchJson(`https://openlibrary.org${workKey}.json`);
+    const worksData = await fetchJson(`${OL_BASE}${workKey}.json`);
     if (worksData) {
       subjects = asStringArray(worksData.subjects).slice(0, 10);
       synopsis = extractOpenLibraryDescription(worksData.description);
@@ -238,14 +245,14 @@ async function tryOpenLibrarySynopsisBySearch(
     params.set("author", firstAuthor.trim());
   }
 
-  const searchData = await fetchJson(`https://openlibrary.org/search.json?${params.toString()}`);
+  const searchData = await fetchJson(`${OL_BASE}/search.json?${params.toString()}`);
   if (!searchData) return undefined;
 
   const docs = Array.isArray(searchData.docs) ? searchData.docs : [];
   const workKey = asString(asRecord(docs[0]).key);
   if (!workKey || !workKey.startsWith("/works/")) return undefined;
 
-  const worksData = await fetchJson(`https://openlibrary.org${workKey}.json`);
+  const worksData = await fetchJson(`${OL_BASE}${workKey}.json`);
   if (!worksData) return undefined;
 
   return extractOpenLibraryDescription(worksData.description);
