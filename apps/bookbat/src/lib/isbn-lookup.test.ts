@@ -3,6 +3,7 @@ import { lookupIsbn } from "./isbn-lookup";
 let fetchMock: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
+  localStorage.clear(); // reset the persistent ISBN lookup cache between cases
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -339,5 +340,47 @@ describe("lookupIsbn", () => {
     mockOpenLibrary();
     const book = await lookupIsbn("0141439513");
     expect(book?.isbn13).toBe("9780141439518");
+  });
+
+  it("serves a repeated lookup from cache with zero network calls", async () => {
+    mockOpenLibrary({}, "Cached Author");
+    const first = await lookupIsbn("9780141439518");
+    const callsAfterFirst = fetchMock.mock.calls.length;
+    expect(callsAfterFirst).toBeGreaterThan(0);
+
+    const second = await lookupIsbn("9780141439518");
+    expect(fetchMock.mock.calls.length).toBe(callsAfterFirst); // no new requests
+    expect(second).toEqual(first);
+  });
+
+  it("caches negative results so a missing ISBN is not re-fetched", async () => {
+    fetchMock.mockResolvedValue({ ok: false });
+    const first = await lookupIsbn("9780141439518");
+    expect(first).toBeNull();
+    const callsAfterFirst = fetchMock.mock.calls.length;
+
+    const second = await lookupIsbn("9780141439518");
+    expect(second).toBeNull();
+    expect(fetchMock.mock.calls.length).toBe(callsAfterFirst); // no new requests
+  });
+
+  it("bypasses the cache when forceRefresh is set", async () => {
+    mockOpenLibrary();
+    await lookupIsbn("9780141439518");
+    const callsAfterFirst = fetchMock.mock.calls.length;
+
+    await lookupIsbn("9780141439518", { forceRefresh: true });
+    expect(fetchMock.mock.calls.length).toBeGreaterThan(callsAfterFirst); // re-fetched
+  });
+
+  it("normalizes ISBN-10 and ISBN-13 to the same cache entry", async () => {
+    mockOpenLibrary();
+    await lookupIsbn("9780141439518");
+    const callsAfterFirst = fetchMock.mock.calls.length;
+
+    // Same book via its ISBN-10 should hit the ISBN-13-keyed cache.
+    const viaIsbn10 = await lookupIsbn("0141439513");
+    expect(fetchMock.mock.calls.length).toBe(callsAfterFirst);
+    expect(viaIsbn10?.isbn13).toBe("9780141439518");
   });
 });
