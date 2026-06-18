@@ -14,7 +14,7 @@ function mockOpenLibrary(
   subjects: string[] = [],
 ) {
   fetchMock.mockImplementation((url: string) => {
-    if (url.includes("openlibrary.org/isbn/")) {
+    if (url.includes("/api/ol/isbn/")) {
       return Promise.resolve({
         ok: true,
         json: () =>
@@ -32,13 +32,13 @@ function mockOpenLibrary(
           }),
       });
     }
-    if (url.includes("openlibrary.org/authors/")) {
+    if (url.includes("/api/ol/authors/")) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ name: authorName }),
       });
     }
-    if (url.includes("openlibrary.org/works/")) {
+    if (url.includes("/api/ol/works/")) {
       return Promise.resolve({
         ok: true,
         json: () => Promise.resolve({ subjects }),
@@ -50,7 +50,7 @@ function mockOpenLibrary(
 
 function _mockOpenLibraryFail() {
   fetchMock.mockImplementation((url: string) => {
-    if (url.includes("openlibrary.org/")) {
+    if (url.includes("/api/ol/")) {
       return Promise.resolve({ ok: false });
     }
     return Promise.resolve({ ok: false });
@@ -115,7 +115,7 @@ describe("lookupIsbn", () => {
 
   it("extracts synopsis from Open Library work description", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/isbn/")) {
+      if (url.includes("/api/ol/isbn/")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -126,13 +126,13 @@ describe("lookupIsbn", () => {
             }),
         });
       }
-      if (url.includes("openlibrary.org/authors/")) {
+      if (url.includes("/api/ol/authors/")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ name: "Author" }),
         });
       }
-      if (url.includes("openlibrary.org/works/")) {
+      if (url.includes("/api/ol/works/")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -150,7 +150,7 @@ describe("lookupIsbn", () => {
 
   it("fills synopsis from Open Library search when missing from ISBN lookup", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/isbn/")) {
+      if (url.includes("/api/ol/isbn/")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -161,13 +161,13 @@ describe("lookupIsbn", () => {
             }),
         });
       }
-      if (url.includes("openlibrary.org/authors/")) {
+      if (url.includes("/api/ol/authors/")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ name: "Author Name" }),
         });
       }
-      if (url.includes("openlibrary.org/search.json")) {
+      if (url.includes("/api/ol/search.json")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -176,7 +176,7 @@ describe("lookupIsbn", () => {
             }),
         });
       }
-      if (url.includes("openlibrary.org/works/OL999W.json")) {
+      if (url.includes("/api/ol/works/OL999W.json")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ description: "Synopsis via search fallback." }),
@@ -207,7 +207,7 @@ describe("lookupIsbn", () => {
 
   it("falls back to Google Books when Open Library fails", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/")) {
+      if (url.includes("/api/ol/")) {
         return Promise.resolve({ ok: false });
       }
       if (url.includes("googleapis.com/books/")) {
@@ -224,7 +224,7 @@ describe("lookupIsbn", () => {
 
   it("normalizes Google Books thumbnail URL to https", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/")) {
+      if (url.includes("/api/ol/")) {
         return Promise.resolve({ ok: false });
       }
       if (url.includes("googleapis.com/books/")) {
@@ -241,7 +241,7 @@ describe("lookupIsbn", () => {
 
   it("extracts synopsis from Google Books when falling back", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/")) {
+      if (url.includes("/api/ol/")) {
         return Promise.resolve({ ok: false });
       }
       if (url.includes("googleapis.com/books/")) {
@@ -259,7 +259,7 @@ describe("lookupIsbn", () => {
 
   it("fills Google Books synopsis from Open Library search when missing", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/isbn/")) {
+      if (url.includes("/api/ol/isbn/")) {
         return Promise.resolve({ ok: false });
       }
       if (url.includes("googleapis.com/books/")) {
@@ -269,7 +269,7 @@ describe("lookupIsbn", () => {
           description: "",
         });
       }
-      if (url.includes("openlibrary.org/search.json")) {
+      if (url.includes("/api/ol/search.json")) {
         return Promise.resolve({
           ok: true,
           json: () =>
@@ -278,7 +278,7 @@ describe("lookupIsbn", () => {
             }),
         });
       }
-      if (url.includes("openlibrary.org/works/OL777W.json")) {
+      if (url.includes("/api/ol/works/OL777W.json")) {
         return Promise.resolve({
           ok: true,
           json: () => Promise.resolve({ description: { value: "GB synopsis via OL search." } }),
@@ -309,7 +309,7 @@ describe("lookupIsbn", () => {
 
   it("fetches Google Books language when OL has none", async () => {
     fetchMock.mockImplementation((url: string) => {
-      if (url.includes("openlibrary.org/isbn/")) {
+      if (url.includes("/api/ol/isbn/")) {
         return Promise.resolve({
           ok: true,
           json: () =>

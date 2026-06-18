@@ -12,6 +12,9 @@ Icon*
 # Local Netlify folder
 .netlify
 
+# Cloudflare Wrangler local state (created by `wrangler dev`)
+.wrangler/
+
 # Local-only full dev dataset (production seed is data/library.json)
 /data/library.full.json
 
